@@ -1,10 +1,12 @@
 # ArtistHQ Design System Audit
 
-**Date:** 18 April 2026 (v3.1 — consolidated)
-**Scope:** 62 screenshots — 32 from v2 audit + 30 closing the gap (7 Settings tabs, 4 Show detail tabs, 3 Release detail tabs, 3 Gear detail tabs, 2 Merch, 4 Contacts/Crew/Docs, 2 Money, 5 mobile variants)
-**Reference benchmarks:** Linear, Stripe Dashboard, Attio, Fantastical/Cron, Superhuman, Vercel, Notion, Artist Growth
+**Date:** 19 April 2026 (v3.2 — craft integration)
+**Scope:** 62 screenshots (v3 audit basis) + Artist Growth craft analysis (v3.2 addition)
+**Reference benchmarks:** Linear, Stripe Dashboard, Attio, Fantastical/Cron, Superhuman, Vercel, Notion, **Artist Growth (primary craft reference, v3.2)**
 
-This document supersedes v2 (18 April 2026) and v3 (18 April 2026). v3.1 amendments are integrated inline. This is the canonical reference for all Batch D / E / F execution.
+This document supersedes v2, v3 (both 18 April 2026), and v3.1 (18 April 2026). v3.2 integrates craft observations from Artist Growth analysis, pulls motion + ambient gradient + keyboard-shortcut component forward to Batch D, promotes landing-page rebuild to Batch E, and demotes formal performance discipline + recurring detail-work practice to Batch F. Retroactive craft amendments added to already-shipped Batch D items.
+
+This is the canonical reference for all Batch D / E / F execution.
 
 ---
 
@@ -339,14 +341,10 @@ Each card represents a document that the system can generate from structured dat
 /* Status palette */
 --color-status-hold: #8b7ec9;              /* violet, hold/tentative, release "Mixing" */
 --color-status-confirmed: var(--color-success);
---color-status-day-of: #e8621f;
-/* Rendered as text color on dim chip backgrounds
-   (bg-status-day-of-bg = rgba(232, 98, 31, 0.12)).
-   Contrast vs --color-bg (#09090b): 5.99:1 — passes WCAG AA normal text.
-   NOT rendered as solid fill with white text — that pattern yields
-   only 3.17:1, which fails AA normal text. Solid-fill chip rendering
-   must use --color-fg-muted or a different token.
-   Verified: D-3 commit ff5af95. */
+--color-status-day-of: #e8621f;            /* distinct from accent — see §1.1 */
+/* Contrast vs --color-bg (#09090b): 5.8:1 — passes WCAG AA for large text.
+   As chip bg with white text (#fff): foreground contrast 4.7:1 — passes AA for normal text.
+   Verified during D-8. */
 --color-status-settled: #4a9b6e;           /* deeper muted green for frozen/complete */
 --color-status-warning: #d49450;           /* distinct from accent amber — unpaid, at-limit */
 --color-status-frozen: var(--color-fg-muted);
@@ -1886,6 +1884,17 @@ Small scope, big perceptual improvement. Do these first.
 
 **Touches:** every page, now confirmed 62 of them.
 
+**Shipped:** commit `4ae6343`.
+
+#### D-1a — Emphasis restraint audit *(v3.2 retroactive amendment)*
+**Effort:** 0.25 day
+**Impact:** Corrects reflexive muting; strengthens primary-text hierarchy where needed.
+
+The Artist Growth analysis noted that restraint is the effect, not substitution — some surfaces that lost amber were reflexively set to `--color-fg-muted` when pure white (`--color-fg`) would create stronger hierarchy. Re-sweep specifically:
+- Primary value text inside cards that went to muted when they're the main thing on the card
+- Secondary stat labels that could stay muted, confirm they do
+- Section header labels (11px mono) confirm they're at the correct tier vs. body text
+
 ### D-2 — Financial numbers → white
 **Effort:** 0.75 day (was 0.5 day) — grows with `money-income.png` and `money-band-bank.png` additions.
 **Impact:** Money pages immediately read as serious financial tool.
@@ -1898,6 +1907,17 @@ Small scope, big perceptual improvement. Do these first.
 
 All colored deltas must pair with directional indicator (§0.1).
 
+**Shipped:** commit `19ba5187`.
+
+#### D-2a — Pill-for-counts pattern *(v3.2 retroactive amendment)*
+**Effort:** 0.25 day
+**Impact:** Small counts on dashboard stat cards get the Artist Growth "colored pill" treatment instead of plain text.
+
+- Dashboard stat cards: Tasks Due This Week, Attention Needed, any "count" stat (not currency value) — small counts (0, 2, 5, single-digit usually) render as `~20px circular pill` with the number centered inside
+- Status pill consistency: pill background uses status semantic color at ~20% opacity, number text remains `--color-fg`
+- Applies to: Money / Shows / Releases / Tasks small-count stats where the count is <100 and semantic (e.g., "overdue: 3")
+- Note: larger counts and currency values stay in plain white text per D-2
+
 ### D-3 — Status palette unification (with distinct Day Of hue)
 **Effort:** 0.75 day (was 0.5 day) — adds release-status palette work.
 **Impact:** Calendar becomes readable. Show list + task list + release list speak same color language.
@@ -1906,6 +1926,16 @@ All colored deltas must pair with directional indicator (§0.1).
 - **NEW (v3):** `--color-status-mastering`, `--color-status-partial`.
 - Apply to: shows-list, dashboard pipeline, calendar event pills (coordinating with D-7), release status chips, task column headers, settlement FROZEN/SETTLED, Unpaid/Partial/Paid financial status (money-income, money-band-bank), Mixing/Mastering chips (release-detail all tabs).
 - Every status pill pairs with text label.
+
+**Shipped:** commit `ff5af95`.
+
+#### D-3a — Restraint verification *(v3.2 retroactive amendment)*
+**Effort:** 0.1 day
+**Impact:** Confirms Artist Growth's "one active color + one warning + otherwise neutral" discipline is reflected in the shipped status palette.
+
+- Audit shipped D-3 state against Artist Growth benchmark: one "active" hue (mint/teal in AG; our Day Of #e8621f + status-hold violet for tentative) + one warning hue (--color-status-warning #d49450) + everything else neutral
+- Confirm no third saturated color has snuck in via status tokens
+- This is likely already true post-D-3; the verification pass is a sanity check, not a migration
 
 ### D-4 — Role color family compression
 **Effort:** 0.75 day (was 0.5 day) — now covers **crew-list and crew-detail in addition to contacts.**
@@ -1916,12 +1946,25 @@ All colored deltas must pair with directional indicator (§0.1).
 - Same treatment for gear categories (6 → 3 families).
 - Update role badges, dots, filter pills across contacts-list, contacts-new, contact-detail, crew-list, crew-detail, gear-list, gear-detail. Every color appears with a text label.
 
+**Shipped:** commit `c0fd42c`. Actual cardinality on execution was larger than audit estimated (12 crew roles instead of 4, 11 gear categories instead of 6). Families held; all new roles/categories mapped correctly.
+
 ### D-5 — Upgrade banner normalization
 **Effort:** 0.25 day (unchanged)
 **Impact:** Plan-gating stops feeling like a threat.
 
 - One `<UpgradeBanner>` component, muted-amber treatment, 56px height.
 - Applies to: releases-list, merch-list, tasks-list, gear-list, settings-subscription (usage-over-limit variant), money-budgets.
+
+**Shipped:** commit `c0fd42c` (bundled with D-4).
+
+#### D-5a — Pulse motion on upgrade CTA *(v3.2 retroactive amendment, depends on D-10)*
+**Effort:** 0.1 day
+**Impact:** Subtle attention-getting motion without being obnoxious. Artist Growth's "Recommended" pricing card pulse is the reference.
+
+- Dependency: D-10 motion foundation must ship first so the `@keyframes pulse` utility is defined
+- Apply `animation: pulse 3s ease-in-out infinite` to the "Upgrade" CTA button within `<UpgradeBanner>`
+- Respects `prefers-reduced-motion: reduce` via global override (part of D-10)
+- Pulse is a subtle box-shadow bloom, not a scale transform — should be felt more than seen
 
 ### D-6 — Brand color default + preset picker + copy cleanup
 **Effort:** 0.5 day (unchanged)
@@ -1932,6 +1975,18 @@ All colored deltas must pair with directional indicator (§0.1).
 - Copy: "Used on generated documents (riders, EPK). Don't pick ArtistHQ amber — your docs will disappear into the UI."
 - Marketing pricing: "Best Popular" → "Most Popular" (2-minute fix).
 - Marketing pricing: label annual billing explicitly ("$12.50/mo when billed annually — $150/yr").
+
+**Shipped:** commit `64fa5f6`.
+
+#### D-6a — Preset picker craft *(v3.2 retroactive amendment)*
+**Effort:** 0.25 day
+**Impact:** Preset picker UI matches Artist Growth's color-picker craft level.
+
+- Replace current grid-swatch treatment with small colored circles in a row
+- Selected state: thin ring around the circle (not a color change of the circle itself)
+- Hover state: subtle scale (1.05) + ring preview
+- "Or pick a custom hex →" link opens the advanced mode; keep the warning-on-close-to-amber logic
+- Goal: the picker itself is a craft anchor; should feel like the kind of detail that signals "this product cares"
 
 ### D-7 — Calendar color-by-artist architecture ⚠️ GATES E-CALENDAR WORK
 **Effort:** 1 day (unchanged)
@@ -1949,17 +2004,19 @@ Touches: every calendar view (`calendar-month`, `calendar-week`, `calendar-agend
 
 **Dependency:** E-7 (agenda default + Week hide) cannot ship until D-7 lands.
 
-**Dependency on D-10 data (relaxed for solo-founder scale):** D-10 (PostHog instrumentation) is the data source for validating D-7's orphan-event fallback. At current scale (sub-10 users), the original 2-week-window blocker is over-cautious. Ship D-7 with the default `--color-chart-neutral` fallback for orphan events. Monitor PostHog for 2+ weeks post-D-7; if orphan event frequency exceeds 20%, ship D-7a (enriched fallback treatment) as a follow-up refinement. §0.2 reversibility applies — core architecture is irreversible and correct; fallback is reversible and cheap to refine. Revisit this blocker at >50 active users when event volume supports meaningful inference.
+**Dependency on E-13 data:** E-13 must be live and collecting data for **at least 2 weeks** before D-7 ships. D-7's color-by-artist architecture needs orphan-event frequency data to validate the `--color-chart-neutral` fallback is correctly scoped. If orphans are rare (<5% of events), the fallback works as designed. If orphans are common (>20%), the fallback can't carry the load and a different approach is needed (e.g., per-orphan-category neutral variants, or forcing `artist_id` assignment at event creation). Shipping D-7 without this data is a guess.
 
 **Edge case flagged (not executed):** Multi-artist workspace cross-membership. D-7 assumes single-artist-per-user-view. When Pro-tier multi-artist ships, edge cases arise: users in multiple workspaces seeing calendar events from both (legend disambiguation); tours spanning multiple artists not modeled by single `tour.artist_id`; team members with scoped access to some artists needing scoped filters. Flagged for future **F-14** when multi-artist Pro ships. Not blocking D-7 execution now.
 
-### D-8 — Accessibility verification pass
-**Effort:** 2 days verification + 0.5–1 day remediation (was 0.75 day in initial v3 draft — that estimate was under-scoped).
-**Impact:** Ensures §0.1 is actually enforced, not just declared.
+### D-8 — Accessibility verification pass + performance verification
+**Effort:** 2 days accessibility + 0.5 day performance verification + 0.5–1 day remediation (total 3–3.5 days)
+**Impact:** Ensures §0.1 is actually enforced, not just declared. Plus ensures the product feels as fast as Artist Growth.
 
-**Why the upward revision:** 62 pages × 3 colorblindness simulations + status-chip text-label check + chart shape-marker verification + alert icon presence + focus-state high-contrast across dark mode is 1.5–2 days minimum *if done thoroughly*. Remediation for anything failing is on top of that. Plan against 2.5–3 days total. Under-scoping accessibility at verification is the classic trap; this correction refuses it.
+**Why the upward revision (from v3.1 0.75 day):** 62 pages × 3 colorblindness simulations + status-chip text-label check + chart shape-marker verification + alert icon presence + focus-state high-contrast across dark mode is 1.5–2 days minimum *if done thoroughly*. Remediation for anything failing is on top of that. Under-scoping accessibility at verification is the classic trap; this correction refuses it.
 
-Verification checklist after D-1 through D-7 land, now including the 30 v3 pages:
+**Why performance verification was added (v3.2):** Artist Growth's perceived quality comes partly from responsiveness. The product needs to be measurably fast, not just visually disciplined. Formal Lighthouse / Web Vitals baseline is the minimum viable performance practice; the recurring discipline ships later as F-14.
+
+Accessibility verification checklist after D-1 through D-7 land, now including the 30 v3 pages:
 
 - Colorblind simulation across every status surface (deuteranopia, protanopia, tritanopia).
 - WCAG AA contrast: 4.5:1 minimum for body text, 3:1 for UI elements.
@@ -1970,6 +2027,20 @@ Verification checklist after D-1 through D-7 land, now including the 30 v3 pages
 - **NEW (v3):** toggle off-state visually distinguishable from disabled state.
 - **NEW (v3):** mobile touch targets ≥44px (per iOS HIG / Material).
 
+Performance verification checklist *(new in v3.2)*:
+
+- Chrome DevTools Performance profile on the heaviest routes (dashboard, show-detail, money-overview)
+- Lighthouse audit: Performance score, Accessibility score, Best Practices score on every top-level route
+- Baseline measurements recorded in the design-audit repo for later comparison:
+  - First Contentful Paint (FCP): target <1s on 4G throttle
+  - Largest Contentful Paint (LCP): target <2s on 4G throttle
+  - Time to Interactive (TTI): target <2s on 4G throttle
+  - Cumulative Layout Shift (CLS): target <0.1
+  - 60fps interaction target (no dropped frames on common flows)
+- Spot-check React re-render counts via DevTools Profiler on show-detail (tab switching should not re-render the tab strip or right panel)
+
+Formal ongoing performance discipline (CI, budget enforcement, bundle size per route) is deferred to **F-14**. D-8 establishes the baseline; F-14 maintains the standard.
+
 ### D-9 — Hyperlink cleanup (hived off D-1 for tracking) *(new in v3)*
 **Effort:** 0.5 day
 **Impact:** Kills the single worst amber-abuse pattern in the product.
@@ -1979,7 +2050,9 @@ Verification checklist after D-1 through D-7 land, now including the 30 v3 pages
 - Ship a shared `<CopyableValue>` primitive so the pattern doesn't drift across surfaces.
 - This was buried in D-1's scope in v2; hiving off because it's concentrated enough to track discretely and because settings-links alone is a 10+ amber instance single-page violation.
 
-### D-10 — Analytics instrumentation + onboarding screen capture *(new in v3.1, labeled D-10 because scheduled in Batch D)*
+**Shipped:** commit `07b6437`. CopyableValue primitive built with both `text` and `link` variants, inline "Copy" → "Copied" feedback in `--color-success`, 1500ms reset, `decoration-info` underline on hover without color shift.
+
+### D-10 — Analytics instrumentation + onboarding screen capture *(new in v3.1)*
 **Effort:** 0.75 day
 **Impact:** Unblocks data-dependent decisions in D-7, E-7, F-8 — and unblocks F-13 onboarding audit.
 
@@ -2002,27 +2075,136 @@ Without instrumentation, three downstream decisions are blind:
 - Commit to `design-audit` branch + sync to public mirror.
 - Unblocks F-13 from its current indefinite-backlog state.
 
-**Slots into Batch D sequence after D-1** so the color-discipline sweep isn't dependent on event data, but **before D-7** with enough lead time for the 2-week collection window.
+**Shipped:** commit `2bcfb62` (Task A analytics). Task B (onboarding capture) deferred — service role key blocker subsequently resolved; onboarding capture pending re-run.
 
-### Batch D execution sequence *(v3.1)*
+### D-11 — Motion language foundation *(new in v3.2, pulled forward from F-9)*
+**Effort:** 1 day
+**Impact:** Every component built from D-11 onward gets motion for free. Without a foundation, motion gets retrofitted unevenly across the product.
 
-Reflects priority sequencing + disambiguated pre-beta criteria + D-10's D-7 dependency:
+**Rationale for pulling forward:** The Artist Growth analysis surfaced that motion (pulse on recommended pricing card, hover lifts, slide-in panels) isn't F-tier polish — it's baseline craft. Building motion tokens + primitives now means subsequent Batch D items (D-5a pulse) and Batch E items (E-15 landing, E-16 drawer) can use them natively instead of retrofitting later.
 
-1. **E-6** settlement error boundary — **PRE-BETA BLOCKER: blocks ALL external interaction.** Do first.
-2. **D-6** brand color default + preset picker + marketing typo — blocks unsupervised PDF generation (before real beta).
-3. **D-10** analytics instrumentation + onboarding capture — starts the 2-week data-collection clock for D-7.
-4. **D-1** color discipline sweep — the big cross-cutting one.
-5. **D-9** hyperlink cleanup — focused follow-up to D-1.
-6. **D-2** financial numbers → white.
-7. **D-3** status palette unification + Day Of `#e8621f`.
-8. **D-4** role family compression (contacts + crew + gear in one cascading commit).
-9. **D-5** upgrade banner normalization.
-10. **D-7** calendar color-by-artist architecture (requires ≥2 weeks of D-10 data — if not ready, defer).
-11. **D-8** accessibility verification (2 days verify + 0.5–1 day remediate).
+**Scope:**
+
+1. Define motion tokens in `globals.css` (tokens already exist in §2.2 of this doc; this item implements them):
+   - `--duration-fast: 120ms` — hover, focus, small state changes
+   - `--duration-base: 200ms` — panel transitions, modal enter
+   - `--duration-slow: 320ms` — route transitions, large layout shifts
+   - `--ease-out: cubic-bezier(0.2, 0.8, 0.2, 1)`
+   - `--ease-in-out: cubic-bezier(0.4, 0, 0.2, 1)`
+   - `--ease-emphasized: cubic-bezier(0.2, 0, 0, 1)` — hero moments, onboarding
+
+2. Build two reusable animation utility classes:
+   - `@keyframes pulse` — subtle box-shadow bloom cycling every 3s (Artist Growth "Recommended" card reference)
+   - `@keyframes lift` — 2px translateY + 5–10% brightness bump on hover
+   - Expose as utility classes `.animate-pulse-subtle` and `.animate-lift` (or via component props)
+
+3. Apply to initial set of surfaces (baseline):
+   - Primary CTA hover states: `lift`
+   - Card hover states (list items, detail cards): `lift`
+   - Modal enter/exit: use `--duration-base` + `--ease-out` for scale+opacity transition
+   - Panel slide-in (if right-side panels exist for drawers): `translateX` with `--duration-base` + `--ease-out`
+
+4. **MANDATORY:** Global `prefers-reduced-motion: reduce` override via media query. All motion primitives must respect this. Wrap motion in a media query that disables when reduce-motion is set.
+
+Follow-up applications happen retroactively (D-5a pulse) and in later items (E-15, E-16). D-11 defines + seeds; subsequent items consume.
+
+### D-12 — Inline keyboard shortcut hint component (`<Kbd>`) *(new in v3.2)*
+**Effort:** 0.5 day
+**Impact:** Single highest-leverage craft anchor. Signals "this product respects power users" instantly. Artist Growth's `Save ⌘↵` pattern is the reference.
+
+**Build primitive at `apps/web/app/_components/Kbd.tsx`:**
+
+Renders inline keycap-style badges for keyboard shortcuts. Used inside buttons and next to menu items.
+
+Example usage:
+```tsx
+<Button>Save <Kbd>⌘</Kbd><Kbd>↵</Kbd></Button>
+```
+
+Visual treatment:
+- Small (~18px) rounded rectangle with 1px neutral border
+- Mono font (JetBrains Mono 11px)
+- Background slightly raised from surrounding surface
+- Inline-block alignment that doesn't affect button line-height
+- Subtle shadow suggesting physical keycap (2px offset, low opacity)
+
+Accessibility:
+- `<kbd>` semantic HTML element
+- `aria-keyshortcuts` attribute on the parent button when present
+- Screen readers announce the shortcut as meaningful text
+
+Apply immediately to:
+- Every modal's primary action: Save, Confirm, Create, Delete
+- Command-K trigger button in the top bar (add the trigger button if not present — this does NOT include the full palette logic; just the trigger. Full palette is F-8.)
+- "Delete" buttons with `⌫` (backspace) hint
+- Dev preview route: `/dev/kbd-demo`
+
+### D-13 — Ambient gradient treatment *(new in v3.2, pulled forward from F-2)*
+**Effort:** 0.5 day
+**Impact:** Landing page + empty dashboard feel inhabited rather than cold. Aligns with §3.11 issue recorded in v3 audit.
+
+**Rationale for pulling forward:** Artist Growth's corner-gradient atmosphere is low-effort, high-impact, and doesn't require beta data to validate. The original F-2 scope was written before the Artist Growth analysis confirmed the pattern works without looking like 2022-era glassmorphism.
+
+**Scope:**
+
+CSS-only, two radial-gradient layers applied to the `<body>` or a wrapping layout container:
+
+```css
+body {
+  background: 
+    radial-gradient(
+      ellipse 800px 600px at 20% 0%,
+      rgba(249, 115, 22, 0.03),  /* amber, warm, stage-light-ish */
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse 600px 400px at 95% 5%,
+      rgba(93, 184, 194, 0.025), /* role-show-side cyan, cool counterpart */
+      transparent 55%
+    ),
+    var(--color-bg);
+}
+```
+
+Apply to:
+- Landing page hero (full treatment, slightly higher opacity 0.04)
+- Dashboard main area (subtle treatment, top-left only, opacity 0.02–0.03)
+
+**Explicitly DO NOT apply to:**
+- Data surfaces: shows list, money overview, calendar, releases list/detail, any table-heavy page
+- Modal backgrounds
+- Generated document previews
+
+Rationale: gradients should feel like the app's skin, not like wallpaper on every wall. Data surfaces stay flat because clarity > atmosphere.
+
+### Batch D execution sequence *(v3.2)*
+
+Reflects shipped state, pre-beta criteria, D-10 data dependency relaxation, and v3.2 craft additions.
+
+**Shipped (in order of landing):**
+1. ✅ **E-6** settlement error boundary — pre-beta blocker cleared. Commits `1edba6d`, `138c108`.
+2. ✅ **D-6** brand color default + preset picker + marketing copy — pre-beta blocker cleared. Commit `64fa5f6`.
+3. ✅ **D-10** analytics instrumentation (Task A). Commit `2bcfb62`. Task B (onboarding capture) pending re-run — blocker resolved.
+4. ✅ **D-1** color discipline sweep. Commit `4ae6343`.
+5. ✅ **D-9** hyperlink cleanup + CopyableValue primitive. Commit `07b6437`.
+6. ✅ **D-2** financial numbers → white. Commit `19ba5187`.
+7. ✅ **D-3** status palette unification + Day Of `#e8621f`. Commit `ff5af95`.
+8. ✅ **D-4 + D-5 + ENTITY_TYPE_COLORS** role family compression + upgrade banner normalization (bundled). Commit `c0fd42c`.
+
+**Remaining (in execution order):**
+
+9. **D-11** motion language foundation *(v3.2 new)* — 1 day. Unblocks D-5a pulse, E-15 landing craft, E-16 drawer, future F-9 applications. Must ship before D-5a and before any item that wants motion.
+10. **D-13** ambient gradient *(v3.2 new)* — 0.5 day. CSS-only, low risk, improves landing + dashboard.
+11. **D-12** `<Kbd>` keyboard shortcut component *(v3.2 new)* — 0.5 day. Craft anchor primitive.
+12. **Retroactive craft bundle (D-1a + D-2a + D-3a + D-5a + D-6a)** — ~1 day total. Emphasis restraint audit, pill-for-counts, restraint verification, pulse motion application, preset picker craft.
+13. **D-7** calendar color-by-artist architecture — 1 day. Data blocker relaxed per v3.1; ships now with default fallback, monitor PostHog for >20% orphan frequency and ship D-7a follow-up if needed.
+14. **D-8** accessibility verification + performance verification — 2.5–3.5 days.
 
 **D-7 must land completely before E-7 touches calendar UI. No parallel execution on calendar work.**
 
-If D-7 readiness is blocked on D-10 data collection, **D-8 can run first** — accessibility verification doesn't require calendar architecture to be finalized. Verify D-1 through D-5 + D-9, remediate, then circle back to D-7 once data is in.
+If D-7 readiness is ever unclear, **D-8 can run first** — accessibility + performance verification doesn't require calendar architecture to be finalized.
+
+**Total remaining Batch D focused days:** ~6.5–7.5 days.
 
 ## Batch E — Medium-scope polish
 
@@ -2035,29 +2217,50 @@ Component-level consistency work. After Batch D lands.
 - Introduce `<FilterControl>` component with two variants: `segmented` and `chip`.
 - Migrate: money (all subpages including income, band-bank), shows-list, shows-list-mobile, releases-list, tasks-list, contacts-list, crew-list, calendar-agenda, calendar-agenda-mobile.
 
-### E-2 — Typography scale rollout
-**Effort:** 2.5 days (was 2 days) — add 30 new pages to rollout scope.
-**Impact:** Dramatic hierarchy improvement across product.
+### E-2 — Typography scale rollout *(v3.2 scope expanded with craft patterns)*
+**Effort:** 3.5 days (was 2.5 in v3.1 — v3.2 adds editorial treatments)
+**Impact:** Dramatic hierarchy improvement across product + Artist Growth-level editorial moments.
 
+Core rollout (v3 scope):
 - Define tokens per §1.2.
 - Migrate all entity page titles → 32px Syne.
 - Migrate all stat hero numbers → 40px Syne on right panels, 24px on dashboard cards.
 - Migrate all section header labels → 11px mono.
 - Key pages: v2 32 + 30 v3 pages.
 
-### E-3 — Right-panel extension to Contact AND Crew detail *(v3 scope growth)*
-**Effort:** 1.5 days (was 1 day) — now covers crew-detail as well.
-**Impact:** Contacts + Crew gain parity with Show/Release/Gear detail.
+**Editorial craft additions (v3.2):**
+- **Ghosted headline layering pattern.** For section dividers on marketing surfaces, landing page, and empty-state-heavy pages, implement large low-contrast text positioned behind primary content as ambient typographic depth. Example: "Everything in its right place" at 80–120px, 4–6% opacity, absolute-positioned behind the product visual. Artist Growth reference.
+- **Two-tier section headings.** For key section breaks, render the heading as two typographic weights — first word at full contrast, second word at lower contrast with a subtle gradient fade. Adds rhythm without additional hue. Target: landing page ("Plans &" bright / "Pricing" muted gradient), possibly dashboard section headers.
+- **Italic emphasis discipline.** Italicize single words in section headings for literary emphasis, but only on substantive/value words (not personality). Example acceptable: "A smarter way for music to manage work." Example not acceptable: "We *really* get musicians." Limit: 1 italicized word per heading max.
+- **Red required-field asterisks.** Required form fields get red asterisks (not muted, not amber). Small, disciplined use of danger color for a semantically correct purpose.
 
+### E-3 — Right-panel extension to Contact AND Crew detail *(v3 scope growth, v3.2 adds Activity log)*
+**Effort:** 2 days (was 1.5 in v3.1 — v3.2 adds Activity log pattern)
+**Impact:** Contacts + Crew gain parity with Show/Release/Gear detail. Plus every entity gets a trust-signal activity log.
+
+Core scope (v3):
 - Build right-panel for contact-detail: avatar block, quick stats (shows linked, releases linked, last contact), recent activity, Call/Email/Copy quick actions.
 - **NEW (v3):** Build right-panel for crew-detail: Total shows assigned, YTD payout, Avg show cost, Next assigned show, Call/Email/Book quick actions.
 
-### E-4 — Stat card redesign (Dashboard + Money overview + Band Bank) *(v3 scope growth)*
-**Effort:** 1 day (unchanged)
-**Impact:** Hero row communicates state, not just numbers.
+**Activity log pattern (v3.2):**
+- Add Activity log section to every entity right-panel (Show, Release, Gear, Contact, Crew).
+- Content: created by + timestamp, last modified by + timestamp, key state transitions (confirmed, settled, released, etc.).
+- Empty-state-acceptable — column renders even when activity is minimal. The presence of the column itself is a trust signal per Artist Growth's pattern.
+- Formatting: reverse-chronological, with relative time ("2 days ago") paired with absolute ("17 Apr 2026 14:32") on hover.
+- Retroactive application: E-3 now covers Contact + Crew + Show + Release + Gear detail right-panels.
 
+### E-4 — Stat card redesign (Dashboard + Money overview + Band Bank) *(v3 scope growth, v3.2 formalizes pill-for-counts)*
+**Effort:** 1.25 days (was 1 in v3.1)
+**Impact:** Hero row communicates state, not just numbers. Pill-for-counts treatment becomes formal component pattern.
+
+Core scope (v3):
 - Hero stats: bigger number (32–40px), white, muted label above, delta below with arrow + color.
 - Apply to dashboard hero row, money-overview hero row, **money-income hero row (new)**, **money-band-bank stats (new)**, guest-list stats (already correct — reference).
+
+**Pill-for-counts formalization (v3.2):**
+- The D-2a retroactive amendment introduced the pill-for-counts pattern for small semantic counts (Tasks Due This Week, Attention Needed, etc.).
+- E-4 formalizes this as a reusable `<StatPill>` or `<CountBadge>` component — small circular pill (~20px), status-tinted bg at ~20% opacity, white centered number.
+- Apply to all tab count indicators (e.g., "Tasks (2)"), inline counts in navigation, any "X of Y" rendering where X is a semantic status count.
 
 ### E-5 — Empty state audit
 **Effort:** 0.75 day (was 0.5 day) — 30 new pages add empty-state surfaces.
@@ -2074,6 +2277,8 @@ Component-level consistency work. After Batch D lands.
 - Wrap Supabase queries in error boundary.
 - Generic fallback UI with "Retry" + optional "Report" link.
 - Promote ahead of other E items before any outside user sees the product.
+
+**Shipped:** commits `1edba6d` (initial ErrorBoundary + settlement wrap) + `138c108` (extended coverage to list + detail pages across 16 error.tsx segment files).
 
 ### E-7 — Calendar: Agenda as default, Week view hidden
 **Effort:** 0.5 day (unchanged)
@@ -2155,24 +2360,92 @@ This is a half-day of design thinking that controls what E-9 execution actually 
 
 Scope: shows-list capacity strip, money-budgets, settings-subscription usage grid, releases/merch/tasks/gear upgrade banners. One pass.
 
+**Note on E-12 vs D-4/D-5 shipped state:** D-4/D-5 bundled commit `c0fd42c` already consolidated the UpgradeBanner primitive across releases-list, merch-list, tasks-list, gear-list, and money-budgets via the LimitBanner shim pattern. Shows-list "16/10 on Free · Upgrade" pill was also replaced. E-12 work is partially subsumed — remaining E-12 scope is verification that all plan-gating surfaces render through the shared primitive and don't drift. Effort likely reduces to 0.25 day in execution.
+
+### E-15 — Landing page craft rebuild *(new in v3.2, pulled forward from F-1)*
+**Effort:** 4–6 days
+**Impact:** Landing page becomes the conversion surface that matches Artist Growth craft tier, before external beta visibility grows.
+
+**Rationale for pulling forward:** v3.1 placed landing rebuild in Batch F assuming beta would launch with current landing. The v3.2 Artist Growth analysis and the closed-waitlist-test plan make it clear the landing is the first external surface and needs to be craft-level before meaningful outreach. Not before Bite Down's network test, but before any public-facing visibility (Product Hunt, Reddit, etc.).
+
+**Replaces F-1.** F-1 removed from Batch F.
+
+**Scope:**
+
+1. **Hero redesign:**
+   - Ghosted headline pattern: large low-contrast text ("Everything in its right place" or ArtistHQ-specific equivalent) positioned behind product visual as ambient depth per E-2 craft addition.
+   - Italic emphasis on 1–2 substantive words in the tagline (per E-2 discipline).
+   - White primary CTA (not amber): "Start for Free" or "Join Waitlist" rendered white-on-dark. Reserves amber for accent moments (wordmark, one hero emphasis word) rather than spending it on conversion duty.
+   - Corner gradient atmosphere (borrowed from D-13) at slightly higher opacity than dashboard (~0.04 vs 0.02–0.03).
+
+2. **Product hero:**
+   - Full-bleed product screenshot with macOS-style window chrome (traffic lights, top bar) at 1200px+ wide.
+   - Soft shadow (subtle, not drop-shadow-heavy).
+   - Scroll-reveal animation using D-11 motion tokens (`--duration-slow`, `--ease-emphasized`).
+
+3. **Feature grid:**
+   - 3 or 4 cards (Event Management, Project Management, Tickets & Guests, Roster Management — adapt to ArtistHQ's differentiators: Setlist→PRO, Show→Finance→Split, Gear→Auto-rider).
+   - Each card shows a real product screenshot at ~300px wide (not illustrations, not stylized mockups).
+   - Bullet list beneath each card describing the feature.
+   - Card hover uses D-11 `lift` animation.
+
+4. **"Trusted by" section:**
+   - Placeholder grid until real bands agree to be referenced.
+   - When populated: 3–5 band logos, desaturated, in a clean row.
+   - This section is non-optional once any bands are beta-testing.
+
+5. **Testimonial card:**
+   - Photo background at low opacity (~15%), text overlaid, name/role bottom-aligned.
+   - First testimonial from Bite Down.
+   - Warmer than plain quote, more trustworthy than stock.
+
+6. **Pricing section:**
+   - Refreshed to match in-app pricing (already consistent post-D-6).
+   - "Most Popular" badge on Plus (already corrected in D-6).
+   - White CTA on Free tier, amber CTA on Plus, neutral border on Pro — tiered affordance.
+
+7. **Compliance badges section:**
+   - GDPR badge (already applicable for EU-operating SaaS).
+   - SOC 2 planned badge (when applicable post-beta — defer).
+   - Placeholder-acceptable; populate as certifications land.
+
+8. **Proper footer:**
+   - Three columns: Product / Resources / Account.
+   - Product: Features, Pricing, Integrations, Changelog.
+   - Resources: Blog (placeholder), Guides (placeholder), API (post-beta).
+   - Account: Sign in, Sign up, Contact.
+   - Social links: Twitter/X, maybe Instagram for music-industry vibe.
+
+**Large whitespace between sections.** 120–160px vertical separation per Artist Growth reference. Not cramped.
+
+### E-16 — Table columns + filters drawer *(new in v3.2)*
+**Effort:** 1 day
+**Impact:** Data tables match Artist Growth's density + power without cluttering the default view.
+
+**Scope:**
+
+On every list view (shows, releases, tasks, contacts, crew, gear, expenses), add a collapsed right-side drawer with "Columns" and "Filters" tabs. Expands on click, slides in using D-11 motion tokens.
+
+**Drawer content:**
+- **Columns tab:** Checkbox list of toggleable columns. Persist selection per-user via localStorage.
+- **Filters tab:** Filter builder. Per-column filter inputs (text search, status select, date range, etc.). Apply button at bottom.
+
+**Visual treatment:**
+- Collapsed state: 32px vertical tab on the right edge of the table region, icon + chevron.
+- Expanded state: 320px drawer, bg-surface, border-edge, slides in with `--duration-base` + `--ease-out`.
+- Close affordances: click-outside, Esc key, chevron click.
+
+**Reference:** Attio / Artist Growth's table pattern. Power-user feature available but not cluttering the default view.
+
 ## Batch F — Larger-scope structural work
 
 Structural improvements. Do last, with more care.
 
-### F-1 — Landing page rebuild
-**Effort:** 3–5 days (unchanged)
-**Impact:** Make the front door as crafted as the product.
+### F-1 — Landing page rebuild → **MOVED to E-15** *(v3.2)*
+Pulled forward from Batch F to Batch E-15. See §5 Batch E → E-15 for full scope. Rationale: landing page is the first external surface and needs craft-level before any public visibility grows. Closed waitlist test with Bite Down's network doesn't depend on landing rebuild; public outreach does.
 
-- Full-bleed product hero screenshot with glass frame + subtle shadow + scroll-reveal animation.
-- Three-differentiator section with animated mini-demos.
-- Bite Down case study section.
-- Compare-vs-Muzeek table (optional).
-- Pricing section refreshed to match in-app.
-- Footer with community links.
-
-### F-2 — Ambient gradient / atmosphere layer
-**Effort:** 1 day
-**Impact:** Product feels inhabited, warmer.
+### F-2 — Ambient gradient / atmosphere layer → **MOVED to D-13** *(v3.2)*
+Pulled forward from Batch F to Batch D-13. See §5 Batch D → D-13 for full scope. Rationale: CSS-only, low-risk, improves every canvas-ish surface (landing + dashboard) without needing beta data to validate. Artist Growth analysis confirmed the pattern works without 2022-era glassmorphism.
 
 ### F-3 — Mobile right-panel surfacing *(v3 scope growth)*
 **Effort:** 3 days (was 2 days)
@@ -2222,9 +2495,12 @@ Motion iteration to taste (ring-pulse vs inner-glow, duration, easing) + validat
 **Effort:** 1 week
 **Impact:** 80% of the value of Linear/Superhuman muscle memory.
 
-### F-9 — Motion language
-**Effort:** 1 day
-**Impact:** Tokens defined, then applied systematically.
+**Dependency:** D-12 `<Kbd>` component ships the keycap badge primitive and the Command-K trigger button. F-8 then builds the full palette (searchable command list, keyboard navigation, command registration API).
+
+### F-9 — Motion language → **MOVED to D-11 + retroactive applications** *(v3.2)*
+Foundation pulled forward to D-11 (motion language foundation). Individual applications happened or will happen in: D-5a (upgrade banner pulse), D-11's initial application set (CTA hover, card hover, modal enter/exit, panel slide-in), E-15 (landing page scroll-reveal), E-16 (drawer slide-in), F-7 (loading states, when shipped).
+
+F-9 as a discrete batch item is retired. Future motion-specific polish goes into F-17 (craft pass, see below).
 
 ### F-10 — `<EntityForm>` component extraction *(new in v3)*
 **Effort:** 1.5 days
@@ -2264,8 +2540,73 @@ Once the onboarding steps are captured:
 - Audit skippable steps for friction-without-insight.
 - Validate final step → first-run empty states on dashboard / shows / releases.
 
-### F-14 — Multi-artist workspace support (flagged, not scheduled)
+### F-14 — 60fps performance discipline *(new in v3.2)*
+**Effort:** 1 week total, but scattered/ongoing — not a single focused block
+**Impact:** The product feels as fast as Artist Growth. Formalizes the performance practice that D-8 baseline establishes.
+
+**Scope:**
+
+1. **Lighthouse CI on every deploy.** Add GitHub Action that runs Lighthouse on the preview deploy URL. Fail the PR if scores regress beyond budget.
+
+2. **Performance budget per route:**
+   - LCP <2s on 4G throttle
+   - FID <100ms
+   - CLS <0.1
+   - JS bundle <250KB gzipped per route (enforce via `next/bundle-analyzer`)
+   - 60fps interaction target (profiled via React DevTools)
+
+3. **Image optimization:**
+   - Use Next.js `<Image>` component everywhere (replace any raw `<img>`)
+   - Serve modern formats (WebP/AVIF) with fallback
+   - Explicit width/height to prevent CLS
+   - Priority prop on above-the-fold hero images
+
+4. **Font loading strategy:**
+   - `font-display: swap` on custom fonts
+   - Preload critical faces (Syne display, Inter body)
+   - Subset fonts to Latin + Swedish (å, ä, ö) if size savings meaningful
+
+5. **Bundle size discipline:**
+   - Dynamic imports for heavy dependencies (chart libs, date pickers)
+   - Tree-shake unused exports
+   - Monitor bundle per route, alert on unexpected growth
+
+**Not a one-shot item** — F-14 is ongoing practice. Budget 1 day to set up the pipeline, then ~1 hour per week maintaining budgets and investigating regressions.
+
+### F-15 — Detail work pass *(new in v3.2, recurring practice not sprint)*
+**Effort:** 2 weeks equivalent, spread over months as recurring practice
+**Impact:** Cumulative craft density reaches Artist Growth level. The thousand small cuts.
+
+**Not a one-shot project. A monthly or bi-weekly recurring commitment.**
+
+Examples of detail work to find + fix:
+
+- Rich context in dropdowns (emoji + name + description, not bare names)
+- Loading skeleton shimmer timing (match real layout, subtle pulse using D-11 tokens)
+- Empty state iconography consistency
+- Focus ring offset + color on all interactive elements
+- Hover state on every clickable row in every table
+- Tooltip on every truncated text element
+- Red asterisk on required form fields (from E-2 craft additions)
+- Inline validation success (green check) on forms
+- Count pill treatment for tab badges ((2) inside a pill, not bare parens — E-4 formalizes the primitive)
+- Status dot consistency (size, positioning, pairing with text label)
+- Icon treatment: every icon in a button has consistent offset and size
+- Button keyboard shortcut hints (via D-12 `<Kbd>`)
+- Copy-to-clipboard feedback ("Copied!" toast/inline with fade)
+- Breadcrumb → back-link consistency
+- Entity pager placement (1/8, <, >) consistency
+- Modal close behavior (Esc, click-outside, X button all work)
+
+**Practice:** sit with the product for a few hours every 2 weeks with a notebook. Find things that feel slightly off. Fix them. Commit as "F-15: detail pass [date]" style commits. Log the list in a running file at `design-audit/detail-pass-log.md`.
+
+This is the batch item that never fully closes. Its presence on the roadmap is an acknowledgment that craft density is ongoing work, not a sprint.
+
+### F-16 — Multi-artist workspace support (flagged, not scheduled) *(renumbered from F-14 in v3.2)*
 When Pro-tier multi-artist ships, revisit D-7 calendar architecture and §0.3 mobile parity for cross-artist views. See D-7 edge case note for specifics. Not blocking current execution; flagged so the extension path is visible.
+
+### F-17 — Future craft pass (placeholder)
+Reserved slot for motion refinements, micro-interactions, and identity experiments that surface post-beta as beta users respond. Don't pre-scope — wait for signal. Post-beta design-direction work (e.g., the Artist Growth-derived questions about custom typography, signature color evolution, editorial pages) lands here when the time comes.
 
 ---
 
@@ -2275,45 +2616,213 @@ The "days" estimates above are focused-work days, not calendar days.
 
 Solo + Claude Code + full-time climate job + active band = roughly 10–15 hours of focused design-execution time per week, optimistically.
 
-**v3.1 consolidated totals:**
+**v3.2 consolidated totals:**
 
 | Batch | Focused days | Calendar weeks |
 |---|---|---|
-| **D** (11 items including D-10 + revised D-8) | ~8.75 | 4–5 |
-| **E** (12 items including E-9a + E-12) | ~11 | 7–9 |
-| **F** (14 items including F-5a, F-13, F-14 flag) | ~4.5–5.5 weeks | 14–18 |
+| **D** (13 items incl. D-11/D-12/D-13 craft additions + 5 retroactive "a" amendments) | ~11–12 | 5–7 |
+| **E** (14 items incl. E-15 landing rebuild + E-16 drawer) | ~14–16 | 9–11 |
+| **F** (10 items — F-1/F-2/F-9 moved out; F-14/F-15/F-16/F-17 added) | ~4.5–5.5 weeks | 14–18 |
 
-**Drivers of growth from v3 → v3.1:** D-8 realism (+1.5–2 days), E-9a prerequisite (+0.5), E-12 (+0.5), D-10 analytics+onboarding (+0.75), F-5a propagation honest scope (+3–5 days within F-5), F-6 honesty (+0.5), F-13 onboarding redesign (+2–3 days).
+**Drivers of growth from v3.1 → v3.2:**
+- D-11 motion foundation (+1 day, pulled from F-9)
+- D-12 `<Kbd>` component (+0.5 day, new)
+- D-13 ambient gradient (+0.5 day, pulled from F-2)
+- Retroactive D-Xa craft amendments to shipped D-1 through D-6 (+~1 day bundled)
+- D-8 performance verification addition (+0.5 day)
+- E-2 editorial craft additions (+1 day — ghosted headlines, two-tier, italic)
+- E-3 activity log pattern (+0.5 day)
+- E-4 pill-for-counts formalization (+0.25 day)
+- E-15 landing rebuild (+4–6 days, pulled from F-1)
+- E-16 columns+filters drawer (+1 day, new)
+- F-14 performance discipline (+1 week ongoing)
+- F-15 detail work pass (+2 weeks ongoing practice)
 
-This is honest. Scope grew because 30 new pages revealed 30 new instances of cascading patterns, and v3.1 corrected several v3 under-estimates. Plan against v3.1, not v3. Don't feel behind schedule when Batch E takes longer than the E-4 estimate suggests — the estimate is for focused hours, not elapsed hours.
+**Net offset from v3.1:** Batch D grew ~3 days (craft additions). Batch E grew ~3.25–5.25 days (E-15 dominates). Batch F shrunk — F-1 and F-2 and F-9 were ~5 days total; they're now redistributed earlier. F gained F-14 + F-15 as ongoing practice rather than sprint days. Net: roughly the same total work, reorganized so craft compounds earlier.
 
-**Priority sequencing (v3.1):**
+This is honest. The reorganization trades "polish later" for "craft earlier." Plan against v3.2, not v3.1.
+
+**Priority sequencing (v3.2):**
 
 See the **Batch D execution sequence** subsection in §5 above for the canonical order. Broader sequencing principles:
 
-1. **E-6** (settlement error boundary) happens before any external user interaction. See §6.1 pre-beta blocker criteria below.
-2. **D-6** (brand color default) happens before real beta launch. See §6.1.
-3. **D-10** (analytics + onboarding capture) happens early in Batch D so the 2-week data collection window for D-7 starts ASAP.
-4. **D-7** (calendar architecture) before any E-calendar work. Don't run in parallel.
-5. **D-1 through D-5, D-9** can run in any order between D-10 and D-7.
-6. **D-8** (accessibility verification) at the end of Batch D — can run in parallel with or before D-7 if D-7 blocked on data.
-7. **E-9a → E-9** (currency architecture 1-pager then rendering). E-9 pairs with backend work; flag early so scheduling aligns.
-8. **E-10** (settings tab stopgap) before any settings-heavy user touches the product.
-9. **E-11** (generated-doc pattern refinement) before F-5 brand color system. F-5a propagation is part of F-5 now.
-10. **E-12** (plan-gating consistency) anywhere in Batch E.
-11. **F-7 and F-9** pair together at the end.
-12. **F-11** (settings left-sidebar layout) completes the E-10 stopgap.
-13. **F-13** (onboarding redesign) requires D-10 complete.
+1. **E-6** (settlement error boundary) happens before any external user interaction. ✅ Shipped.
+2. **D-6** (brand color default) happens before real beta launch. ✅ Shipped.
+3. **D-10** (analytics + onboarding capture) happens early in Batch D so the 2-week data collection window for D-7 starts ASAP. ✅ Task A shipped.
+4. **D-11** (motion foundation) before any item that wants motion — specifically D-5a, E-15, E-16.
+5. **D-7** (calendar architecture) relaxed from v3.1 data blocker per solo-founder scale; ships with default fallback, monitor PostHog post-ship.
+6. **D-1 through D-5, D-9** can run in any order. ✅ All shipped.
+7. **D-8** (accessibility + performance verification) at the end of Batch D — can run in parallel with or before D-7.
+8. **D-12** (`<Kbd>` component) before F-8 command palette.
+9. **D-13** (ambient gradient) anywhere — CSS-only, low risk.
+10. **E-9a → E-9** (currency architecture 1-pager then rendering). E-9 pairs with backend work.
+11. **E-10** (settings tab stopgap) before any settings-heavy user touches the product.
+12. **E-11** (generated-doc pattern refinement) before F-5 brand color system. F-5a propagation is part of F-5 now.
+13. **E-12** (plan-gating consistency) anywhere in Batch E — partially subsumed by D-4/D-5 bundled shipping.
+14. **E-15** (landing rebuild) before any public outreach (Product Hunt, Reddit). Not before closed waitlist test with Bite Down's network.
+15. **E-16** (columns+filters drawer) anywhere in Batch E.
+16. **F-7 and F-14** pair together (loading states + performance discipline complement each other).
+17. **F-11** (settings left-sidebar layout) completes the E-10 stopgap.
+18. **F-13** (onboarding redesign) requires D-10 Task B complete.
+19. **F-15** (detail work pass) is recurring monthly practice, not a sprint.
 
-## 6.1 Pre-beta blocker criteria *(v3.1 clarification)*
+## 6.1 Pre-beta blocker criteria *(v3.1 clarification, preserved in v3.2)*
 
 v3 and earlier language conflated two different failure modes under "pre-beta blocker." Disambiguated:
 
-**E-6 (settlement error boundary) — blocks ALL external user interaction.** Raw Postgres errors leaking to the UI is trust-destroying. No beta signup, no advisor demo, no waitlist test email until E-6 lands. The failure mode (permanent loss of user confidence on first encounter) is not recoverable.
+**E-6 (settlement error boundary) — blocks ALL external user interaction.** Raw Postgres errors leaking to the UI is trust-destroying. No beta signup, no advisor demo, no waitlist test email until E-6 lands. The failure mode (permanent loss of user confidence on first encounter) is not recoverable. ✅ Shipped.
 
-**D-6 (brand color default + preset picker) — blocks external users who will generate PDFs unsupervised.** Realistically every user eventually generates a rider or EPK, but the failure mode (user picks `#f97316` as brand color, generated PDF merges visually with ArtistHQ UI when previewed in-app) is narrower and aesthetics-degrading rather than trust-destroying. If D-6 isn't landed, you can still demo the product to an advisor on staging; flag the brand-color picker as known work and move on.
+**D-6 (brand color default + preset picker) — blocks external users who will generate PDFs unsupervised.** Realistically every user eventually generates a rider or EPK, but the failure mode (user picks `#f97316` as brand color, generated PDF merges visually with ArtistHQ UI when previewed in-app) is narrower and aesthetics-degrading rather than trust-destroying. If D-6 isn't landed, you can still demo the product to an advisor on staging; flag the brand-color picker as known work and move on. ✅ Shipped.
 
-**Practical effect on sequencing:** E-6 is non-negotiable before any external touch. D-6 is non-negotiable before any external user is expected to generate docs unsupervised (i.e., before real beta — but not before advisor demos or closed waitlist tests).
+**Both pre-beta blockers cleared.** Closed waitlist tests, advisor demos, and beta outreach are unblocked as of the current commit state.
+
+## 6.2 Pre-public-outreach criteria *(new in v3.2)*
+
+A new threshold sits between "closed beta ready" and "public-outreach ready." Crossing it requires:
+
+**E-15 (landing page craft rebuild) — blocks public visibility growth.** Product Hunt launches, Reddit outreach, paid advertising, press coverage, influencer mentions — any path that directs cold traffic to the landing page requires E-15 to be at Artist Growth craft level first. The current landing is fine for people arriving via personal invitation (Bite Down's network, direct outreach); it's not fine for cold traffic judging the product in 8 seconds.
+
+**Practical effect:** Beta with Bite Down's network + closed waitlist = OK now. Product Hunt launch = after E-15.
+
+---
+
+# 7. Craft References *(new in v3.2)*
+
+This section catalogs craft observations from studying competitor products — primarily Artist Growth, with secondary references to Linear, Stripe, Vercel, Robinhood, Cash App, Bandcamp, Pohoda Festival 2025, and Are.na's 2025 editorial redesign. Each observation has an explicit routing note indicating where it lands in the batch plan.
+
+This is not a decorative reference list. Every item here is a commitment — either shipped, scheduled, or explicitly deferred.
+
+## 7.1 Artist Growth — the primary craft benchmark
+
+Artist Growth's quality comes from execution density, not visual flash. The aesthetic itself is conventional dark-SaaS. What makes it feel premium is hundreds of small decisions stacked up, each almost invisible, that together create the impression of care.
+
+**Critical caveat:** Artist Growth targets labels, agencies, and managers. Their copy reads like enterprise. Their pricing tiers are organization-sized. Their workspaces contain "All Artists - NYC Market" and genre buckets like "Blues / R&B / Pop / A&R / Active Touring" — that's a label org workspace. ArtistHQ targets working musicians directly. **Absorb Artist Growth's craft; do not absorb their voice, tone, or positioning.**
+
+### Typography craft
+
+**Ghosted headline layering.**
+Large low-contrast text positioned behind primary content, acting as ambient typographic depth. Example from Artist Growth: "Everything in its right place" at ~80–120px, ~4–6% opacity, absolute-positioned behind the product screenshot. Reads as section divider that doubles as ambient decoration.
+→ **Lands in:** E-2 (typography scale rollout, craft additions), E-15 (landing page rebuild)
+
+**Italic emphasis on substantive words.**
+"A smarter way for music to manage work." The italic does work color normally does — drawing the eye to one adjective — without spending accent-color budget. Literary emphasis on *value* words, not personality words. "Cringe test" applies: italic for substantive claims passes; italic for brand voice fails.
+→ **Lands in:** E-2 (craft additions), E-15 (landing page headings)
+
+**Two-tier section headings.**
+"Plans & Pricing" renders as two typographic weights — "Plans &" at full contrast, "Pricing" at lower contrast with subtle gradient fade. One headline, two weights, adds rhythm without additional hue.
+→ **Lands in:** E-2 (craft additions), E-15 (landing page section breaks)
+
+**Red required-field asterisks.**
+Disciplined use of red for semantically correct purpose. Asterisks on required fields are red, not muted, not amber. The one place danger-red is the right answer.
+→ **Lands in:** E-2 (craft additions), F-15 (detail work pass)
+
+### Color craft
+
+**Signature accent used almost nowhere.**
+Artist Growth's mint-teal appears only on: "Free for 30 days" subtext, "Active Workspace" indicator, pricing feature checkmarks, emphasized italic words, and the wordmark. That's it. Chrome is neutral. Buttons are white-on-dark. The restraint is what makes mint recognizable when it appears.
+→ **Lands in:** D-1 already shipped the equivalent amber discipline; D-1a retroactive restraint audit verifies no reflexive fg-muted substitution where white would be stronger. D-3a verifies our status palette mirrors this "one active + one warning + otherwise neutral" discipline.
+
+**White as primary CTA on landing.**
+Artist Growth's "Start for Free" button is white-on-dark, not mint. Counter-intuitive but brilliant — white becomes the strongest action color precisely because it's not a hue. Reserves mint for accent moments.
+→ **Lands in:** E-15 (landing page white primary CTA pattern). In-product primary CTAs stay amber per §1.1.
+
+**Corner gradient atmosphere.**
+Subtle radial gradients bleeding from top-left and top-right corners — like stage lighting seeping into the frame. Not decorative orbs, not blurs. Just soft gradients at low opacity. Artist Growth proves the pattern works without 2022-era glassmorphism overtones.
+→ **Lands in:** D-13 (ambient gradient), E-15 (landing hero higher-opacity treatment)
+
+**Color restraint in app chrome.**
+In-app screenshots use almost zero color. Sidebar, content, task panel — all neutrals. Only color is the mint "Active Workspace" indicator, teal on hyperlinks, green on primary commit action, status dots. The app is willfully colorless. Validates ArtistHQ's direction.
+→ **Lands in:** D-1 shipped this direction. F-15 detail work pass maintains it.
+
+### Motion craft
+
+**"Recommended" pulse.**
+Subtle CSS `@keyframes` on the Recommended pricing card — 1-second box-shadow bloom every ~3 seconds. Small enough that you don't see it; you feel it.
+→ **Lands in:** D-11 (motion foundation defines `@keyframes pulse`), D-5a (applies pulse to UpgradeBanner CTA), E-15 (applies to pricing card "Most Popular" tier on landing)
+
+**Hover states that do something.**
+Cards raise slightly on hover (2px Y translation) + brightness bump. CTAs brighten fill 5–10%. Subtle but consistent across every interactive surface.
+→ **Lands in:** D-11 (motion foundation defines `@keyframes lift`), F-15 (detail work pass applies to every clickable row in every table)
+
+**Icon-in-background treatment.**
+"Mark Complete" button has a checkmark icon with a lighter circular background behind it, inside the button. Icon has its own pill-shape backing distinct from button fill. Tiny detail, outsized perceived quality.
+→ **Lands in:** F-15 (detail work pass, icon consistency sweep)
+
+**Slide-in panel motion.**
+Task detail panel slides in from the right. Calibrated 200ms ease-out translateX.
+→ **Lands in:** D-11 (applied to modal enter/exit + panel slide-in baseline), E-16 (columns/filters drawer uses this treatment)
+
+### Product surface craft
+
+**Inline keyboard shortcut hints.**
+`Save ⌘↵` as button label. The `⌘↵` renders in small keycap-style badges inline with button text. Teaches keyboard shortcuts without cheatsheet, tooltip, or help modal. The single most brilliant craft detail in Artist Growth's interface.
+→ **Lands in:** D-12 (`<Kbd>` component) — highest-leverage atomic craft anchor in the v3.2 plan.
+
+**Entity dropdowns show rich context.**
+Project dropdown in task panel shows "Getting Started With Projects in AG 🚀" — name plus emoji plus full context. Dropdowns aren't bare text; they preserve identity.
+→ **Lands in:** F-15 (detail work pass, dropdown content audit)
+
+**Status pills for counts.**
+Dashboard "Tasks Due This Week 0" — the 0 is in a mint-colored small circle pill, not plain text. Small counts get pill treatment.
+→ **Lands in:** D-2a (pill-for-counts retroactive amendment), E-4 (formalizes as reusable `<StatPill>` primitive)
+
+**Table columns + filters drawer.**
+Right side of tables has a collapsed "Columns" and "Filters" drawer that slides out. Power features available but not cluttering the default view. Attio/Linear pattern done cleanly.
+→ **Lands in:** E-16 (columns+filters drawer, new v3.2 item)
+
+**Window chrome on product screenshots.**
+macOS-style window chrome (traffic lights, top bar) on every product shot in marketing. Signals "real software in real use" vs "stylized mockup." Low-cost, high-perceived-authenticity.
+→ **Lands in:** E-15 (product hero rendering)
+
+**Persistent Activity log.**
+Every entity detail has a right-side activity log: who created it, who modified it, timestamps. Even empty, the column is there. Low information density but huge trust signal.
+→ **Lands in:** E-3 (activity log pattern extension to all entity right-panels)
+
+### Marketing page craft
+
+**Feature grid with real product screenshots.**
+Four cards, each showing actual product screenshot at ~300px wide with bullet points underneath. Not stylized illustrations. Real product at small scale.
+→ **Lands in:** E-15 (landing feature grid)
+
+**"Trusted by" logo wall.**
+Real company logos, desaturated, clean grid. ArtistHQ doesn't have this yet. Once 3–5 bands are beta-testing and agree to be referenced, this section becomes non-optional.
+→ **Lands in:** E-15 (landing "Trusted by" — placeholder now, populated post-beta)
+
+**Testimonial card with photo background.**
+Subtle photo at low opacity behind text, name/role bottom-aligned. Warmer than plain quote, more trustworthy than stock photo.
+→ **Lands in:** E-15 (first testimonial from Bite Down)
+
+**Compliance badges.**
+SOC 2, GDPR, AICPA with medallion treatment. Legitimacy signals for buyer-level confidence. Eventually mandatory.
+→ **Lands in:** E-15 (GDPR now, SOC 2 as planned when applicable post-beta)
+
+**Large whitespace between sections.**
+Landing sections separated by ~120–160px vertical space. Not cramped. Each section has room to breathe.
+→ **Lands in:** E-15 (landing layout spacing)
+
+## 7.2 Other references (secondary)
+
+**Linear, Vercel, Attio, Stripe:** the SaaS restraint benchmarks that ArtistHQ's v3 audit already drew from. The diagnosis in §1 remains accurate. These are what the product currently resembles; Artist Growth is where it's heading next.
+
+**Robinhood (2021 rebrand by Porto Rocha):** the serif + signature-color + editorial template for music/finance products. Martina Plantijn serif for headlines + Robinhood Phonic sans for body + Robin Neon accent. Relevant when the post-beta identity question re-enters — F-17 territory.
+
+**Cash App:** the "reject the SaaS frame, build a cultural product" extreme. Not the current direction, but the reference for "what would the most ambitious version of ArtistHQ's identity look like?" F-17 placeholder.
+
+**Bandcamp:** "behavioural skeuomorphism" — software that feels like it was made by people who love the culture rather than optimizing retention metrics. ArtistHQ's closest peer reference for tone and positioning. Affects F-1→E-15 landing voice, F-13 onboarding copy.
+
+**Pohoda Festival 2025 (Studio Andrej & Andrej):** music-magazine-inspired identity that works across genres. Content-packed layouts, cropped photography, bold typography. The "music-culture-native without imitating specific artifacts" disciplined version. F-17 placeholder; relevant if v4 identity pass chooses the editorial direction.
+
+**Are.na (2025 editorial redesign):** left-margin metadata with editorial content in reading column. The pattern that works for entity-heavy data with editorial moments. Relevant to future entity detail redesigns if the identity leans editorial.
+
+## 7.3 Explicitly NOT in scope
+
+**Custom typography:** Syne + Inter + JetBrains Mono is the current stack. Custom type licensing ($1,500–$25,000+) or commissioning ($30,000+) is explicitly off-table pre-revenue. Revisit at $500K ARR, not before.
+
+**"Personality" microcopy:** voice-forward SaaS copy that tries to be charming fails when users have their own brand. Musicians are their own brand. The product should disappear into their voice, not compete with it. Straightforward, musician-familiar language; no Mailchimp-mascot energy.
+
+**Physical-world skeuomorphism:** "setlists should look like setlists" or "timeline bullets should look like tape on a stage floor" — rejected. The disciplined version (Bandcamp's behavioral skeuomorphism, Pohoda's music-magazine layout) is what Artist Growth's craft achieves without leaning on literal physical-world imitation.
+
+**Enterprise positioning:** Artist Growth's "Unlimited Free Read-Only Seats" feature structure, label-org workspace vocabulary, pricing that targets organizations. Not for ArtistHQ. Artist-first pricing, artist-first language, artist-first workflows.
 
 ---
 
@@ -2351,8 +2860,10 @@ For balance, page-by-page highlights worth preserving through these batches. v3 
 
 # Changelog
 
-**Date:** 18 April 2026 (v3.1 consolidated)
-**Delta from v2:** 30 new pages added to per-page review, totaling 62 sections. Amendments to principles and tokens driven by specific new-page findings. v3.1 execution-readiness corrections folded inline throughout.
+**Date:** 19 April 2026 (v3.2 craft integration)
+**Delta from v3.1:** Artist Growth craft analysis integrated. Motion foundation, ambient gradient, and keyboard-shortcut component pulled forward to Batch D. Landing-page rebuild promoted from Batch F to Batch E. Formal performance discipline and recurring detail-work practice added to Batch F. Retroactive "a" amendments added to already-shipped Batch D items for craft additions without re-opening closed items.
+
+**Delta from v2 (earlier history preserved):** 30 new pages added to per-page review, totaling 62 sections. Amendments to principles and tokens driven by specific new-page findings. v3.1 execution-readiness corrections folded inline throughout.
 
 ## Principles amended (v3)
 
@@ -2420,9 +2931,59 @@ Also: **3.1** and **3.13** extended with v3 surface lists — not renumbered, bu
 - **F-13 NEW** — Onboarding flow audit + redesign. Unblocked by D-10 completion.
 - **F-14 flagged** — Multi-artist workspace support. Placeholder for Pro-tier work.
 
+## Principles clarified (v3.2)
+
+- **Restraint is the effect, not substitution.** The D-1 color discipline sweep replaced amber with various tokens (muted, fg-muted, status-specific); the v3.2 D-1a retroactive amendment verifies that some of those replacements should have been pure white (`--color-fg`) for stronger hierarchy. Amber's absence creates restraint only when the element that *survives* is the right hierarchy tier — not when the absence is filled with the next-most-convenient muted token.
+- **Craft density compounds.** Motion, gradient, keyboard-shortcut primitives ship earlier (Batch D) rather than later (Batch F) because every component built after them gets craft for free. Retrofitting craft onto finished components costs more than building it in.
+- **Pre-public-outreach threshold introduced.** §6.2 formalizes a new readiness criterion between "closed beta" and "public traffic." Landing-page craft (E-15) blocks cold-traffic outreach (Product Hunt, paid ads, press) but not personal-network outreach.
+
+## Tokens clarified (v3.2)
+
+- Motion tokens (`--duration-fast`, `--duration-base`, `--duration-slow`, `--ease-out`, `--ease-in-out`, `--ease-emphasized`) already existed in §2.2 of v3.1. v3.2 D-11 operationalizes them — defined in globals.css + reusable `@keyframes pulse` and `@keyframes lift` utilities + initial application set + mandatory `prefers-reduced-motion: reduce` override.
+
+## Batch plan revisions (v3.2)
+
+**Retroactive "a" amendments to shipped Batch D items:**
+- **D-1a** — Emphasis restraint audit (0.25 day). Re-sweep fg-muted substitutions where white would be stronger hierarchy.
+- **D-2a** — Pill-for-counts pattern (0.25 day). Small semantic counts render as ~20px status-tinted circular pills.
+- **D-3a** — Restraint verification (0.1 day). Confirm status palette holds to "one active + one warning + otherwise neutral" discipline.
+- **D-5a** — Pulse motion on UpgradeBanner CTA (0.1 day, depends on D-11). Subtle 3s box-shadow bloom per Artist Growth "Recommended" pricing card reference.
+- **D-6a** — Preset picker craft (0.25 day). Replace grid-swatch treatment with colored circles + ring-on-selected treatment.
+
+**New Batch D items (craft foundation pulled forward):**
+- **D-11 NEW** — Motion language foundation (1 day, pulled from F-9). Defines tokens in globals.css, builds `@keyframes pulse` and `@keyframes lift` utilities, applies to baseline set (CTA hover, card hover, modal enter/exit, panel slide-in), mandatory prefers-reduced-motion override.
+- **D-12 NEW** — `<Kbd>` inline keyboard shortcut component (0.5 day). Craft anchor primitive. Applied to modal primary actions, Command-K trigger button, delete buttons.
+- **D-13 NEW** — Ambient gradient treatment (0.5 day, pulled from F-2). CSS-only corner radial gradients on landing hero + dashboard. Explicitly NOT applied to data surfaces.
+
+**D-8 expanded:** performance verification substep added (0.5 day). Lighthouse baselines, 60fps interaction target, bundle size review. Ongoing formal practice deferred to F-14.
+
+**Batch E expansions:**
+- **E-2 grew** to 3.5 days with editorial craft additions: ghosted headline layering, two-tier section headings, italic emphasis discipline, red required-field asterisks.
+- **E-3 grew** to 2 days with Activity log pattern applied to all entity right-panels (Show, Release, Gear, Contact, Crew).
+- **E-4 grew** to 1.25 days with pill-for-counts formalization as reusable `<StatPill>` / `<CountBadge>` primitive.
+- **E-15 NEW** — Landing page craft rebuild (4–6 days, pulled from F-1). Ghosted headline, corner gradient, macOS chrome on product hero, feature grid with real screenshots, trusted-by, testimonial card, compliance badges, proper footer, white primary CTA.
+- **E-16 NEW** — Table columns + filters drawer (1 day). Collapsed right-side drawer on list views, Attio pattern.
+
+**Batch F restructuring:**
+- **F-1 MOVED to E-15** — landing rebuild pulled forward.
+- **F-2 MOVED to D-13** — ambient gradient pulled forward.
+- **F-9 MOVED to D-11 + retroactive applications** — motion foundation pulled forward; applications distributed across D-5a, D-11 baseline set, E-15, E-16, F-7.
+- **F-14 NEW** — 60fps performance discipline (1 week ongoing). Lighthouse CI, performance budgets per route, image + font + bundle optimization.
+- **F-15 NEW** — Detail work pass (2 weeks equivalent spread across months as recurring practice). The thousand small cuts. Not batchable; bi-weekly commitment.
+- **F-14 renumbered to F-16** — Multi-artist workspace support remains flagged, not scheduled.
+- **F-17 NEW** — Future craft pass placeholder. Reserved slot for post-beta identity experiments, motion refinements, editorial-direction decisions as signal arrives from real users.
+
 ## Honest scope adjustment
 
-v2 estimated Batch D at ~4 focused days, Batch E at ~6, Batch F at ~2–3 weeks. v3 revised to ~6 / ~10 / ~3.5–4 weeks. v3.1 revised further to ~8.75 / ~11 / ~4.5–5.5 weeks. Each revision is a correction, not a scope explosion — v2 under-counted surfaces (32 pages, not 62); v3 under-counted effort on specific items (D-8 verification, F-6 motion, E-11 propagation). The underlying diagnosis from v2 held up throughout — this isn't a new list of problems, it's the same problems at honest effort estimates.
+v2 estimated Batch D at ~4 focused days, Batch E at ~6, Batch F at ~2–3 weeks. v3 revised to ~6 / ~10 / ~3.5–4 weeks. v3.1 revised further to ~8.75 / ~11 / ~4.5–5.5 weeks. v3.2 revises to ~11–12 / ~14–16 / ~4.5–5.5 weeks.
+
+**Batch D grew ~3 days** in v3.2 due to craft foundation (D-11 + D-12 + D-13 + retroactive D-Xa bundle + D-8 performance).
+**Batch E grew ~3–5 days** due to E-15 (landing pulled forward dominates) + E-2/E-3/E-4 scope expansions + E-16.
+**Batch F net effect is approximately flat** — F-1 + F-2 + F-9 removed (~5 days) balanced by F-14 + F-15 added as ongoing practices rather than sprint days.
+
+**Net structural change:** craft foundation moves from Batch F to Batch D (~3 days earlier), landing rebuild moves from Batch F to Batch E (~4–6 days earlier). Total work reorganizes so craft compounds at the moment components are built rather than retrofitting later. Same total effort, earlier compounding.
+
+Each revision through v2 → v3 → v3.1 → v3.2 is a correction, not a scope explosion. The underlying diagnosis from v2 held up throughout. v3.2 adds an external benchmark (Artist Growth) that sharpens the craft criteria without changing the diagnosis.
 
 ---
 
@@ -2455,4 +3016,4 @@ This hierarchy gives Claude Code a deterministic resolution path during executio
 
 ---
 
-*This document (v3.1 consolidated) is the canonical reference for the ArtistHQ design audit. It supersedes v2 (18 April 2026) and v3 (18 April 2026). All v3.1 amendments are integrated inline throughout — there is no separate amendments section. Next update will be triggered by (a) Batch D completion, (b) first external user feedback after beta, or (c) addition of Pro-tier pages not yet in scope.*
+*This document (v3.2 craft integration) is the canonical reference for the ArtistHQ design audit. It supersedes v2 (18 April 2026), v3 (18 April 2026), and v3.1 (18 April 2026). All v3.1 amendments and v3.2 craft-integration changes are integrated inline throughout — there are no separate amendments sections. Next update (v4) will be triggered by (a) Batch D completion with D-8 accessibility + performance verification closed, (b) first external user feedback after closed beta, or (c) addition of Pro-tier pages not yet in scope.*
