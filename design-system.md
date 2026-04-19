@@ -1949,7 +1949,7 @@ Touches: every calendar view (`calendar-month`, `calendar-week`, `calendar-agend
 
 **Dependency:** E-7 (agenda default + Week hide) cannot ship until D-7 lands.
 
-**Dependency on E-13 data:** E-13 must be live and collecting data for **at least 2 weeks** before D-7 ships. D-7's color-by-artist architecture needs orphan-event frequency data to validate the `--color-chart-neutral` fallback is correctly scoped. If orphans are rare (<5% of events), the fallback works as designed. If orphans are common (>20%), the fallback can't carry the load and a different approach is needed (e.g., per-orphan-category neutral variants, or forcing `artist_id` assignment at event creation). Shipping D-7 without this data is a guess.
+**Dependency on D-10 data (relaxed for solo-founder scale):** D-10 (PostHog instrumentation) is the data source for validating D-7's orphan-event fallback. At current scale (sub-10 users), the original 2-week-window blocker is over-cautious. Ship D-7 with the default `--color-chart-neutral` fallback for orphan events. Monitor PostHog for 2+ weeks post-D-7; if orphan event frequency exceeds 20%, ship D-7a (enriched fallback treatment) as a follow-up refinement. §0.2 reversibility applies — core architecture is irreversible and correct; fallback is reversible and cheap to refine. Revisit this blocker at >50 active users when event volume supports meaningful inference.
 
 **Edge case flagged (not executed):** Multi-artist workspace cross-membership. D-7 assumes single-artist-per-user-view. When Pro-tier multi-artist ships, edge cases arise: users in multiple workspaces seeing calendar events from both (legend disambiguation); tours spanning multiple artists not modeled by single `tour.artist_id`; team members with scoped access to some artists needing scoped filters. Flagged for future **F-14** when multi-artist Pro ships. Not blocking D-7 execution now.
 
@@ -2294,7 +2294,7 @@ See the **Batch D execution sequence** subsection in §5 above for the canonical
 1. **E-6** (settlement error boundary) happens before any external user interaction. See §6.1 pre-beta blocker criteria below.
 2. **D-6** (brand color default) happens before real beta launch. See §6.1.
 3. **D-10** (analytics + onboarding capture) happens early in Batch D so the 2-week data collection window for D-7 starts ASAP.
-4. **D-7** (calendar architecture) before any E-calendar work. Don't run in parallel. Blocked on ≥2 weeks of D-10 data.
+4. **D-7** (calendar architecture) before any E-calendar work. Don't run in parallel.
 5. **D-1 through D-5, D-9** can run in any order between D-10 and D-7.
 6. **D-8** (accessibility verification) at the end of Batch D — can run in parallel with or before D-7 if D-7 blocked on data.
 7. **E-9a → E-9** (currency architecture 1-pager then rendering). E-9 pairs with backend work; flag early so scheduling aligns.
