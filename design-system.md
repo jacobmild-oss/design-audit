@@ -339,10 +339,14 @@ Each card represents a document that the system can generate from structured dat
 /* Status palette */
 --color-status-hold: #8b7ec9;              /* violet, hold/tentative, release "Mixing" */
 --color-status-confirmed: var(--color-success);
---color-status-day-of: #e8621f;            /* distinct from accent — see §1.1 */
-/* Contrast vs --color-bg (#09090b): 5.8:1 — passes WCAG AA for large text.
-   As chip bg with white text (#fff): foreground contrast 4.7:1 — passes AA for normal text.
-   Verified during D-8. */
+--color-status-day-of: #e8621f;
+/* Rendered as text color on dim chip backgrounds
+   (bg-status-day-of-bg = rgba(232, 98, 31, 0.12)).
+   Contrast vs --color-bg (#09090b): 5.99:1 — passes WCAG AA normal text.
+   NOT rendered as solid fill with white text — that pattern yields
+   only 3.17:1, which fails AA normal text. Solid-fill chip rendering
+   must use --color-fg-muted or a different token.
+   Verified: D-3 commit ff5af95. */
 --color-status-settled: #4a9b6e;           /* deeper muted green for frozen/complete */
 --color-status-warning: #d49450;           /* distinct from accent amber — unpaid, at-limit */
 --color-status-frozen: var(--color-fg-muted);
