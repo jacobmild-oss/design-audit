@@ -11,6 +11,48 @@
 
 ---
 
+## D-8c-1 — BLOCKER accessibility remediation (2026-04-19)
+
+**Scope.** The four critical axe rules flagged in D-8b — `button-name`, `link-name`, `label`, `label-title-only` — plus sub-24px touch targets (WCAG 2.5.8). HIGH/MEDIUM findings (`color-contrast`, `page-has-heading-one`, `region`, `heading-order`, colorblind, focus-ring) deferred to **F-15**.
+
+**Verification.** Production build on `localhost:3000` (`npm run build && npm run start`). Axe-core re-run across the full 40 route-viewport matrix (same `axe-detail.mjs` as D-8b). Result: **hits=0 on every route for every remediated rule.** By-rule map: `{}` (empty).
+
+| Rule | D-8b nodes | D-8c-1 nodes | Delta |
+|---|---:|---:|---:|
+| `button-name` | 78 (21 routes) | **0** | -78 |
+| `link-name` | 11 (2 routes) | **0** | -11 |
+| `label` | 13 (5 routes) | **0** | -13 |
+| `label-title-only` | 1 | **0** | -1 |
+| Sub-24px touch targets | 94 | **0** | -94 |
+
+**Commits.** Four category-scoped commits on `main`:
+
+| SHA | Category | Files |
+|---|---|---:|
+| `635c8a9` | button-name — aria-label on 21 icon-only buttons | 9 |
+| `c43da02` | link-name — aria-label on icon/image-only links | 2 |
+| `74a9fae` | label — `htmlFor`/`id` pairing + aria-label + role=switch | 5 |
+| `9fa6361` | touch targets — 24×24 icon buttons + sidebar 44px mobile | 3 |
+
+**Patterns applied.**
+- Icon-only `<button>` / `<Link>`: `aria-label` derived from action + entity (e.g. ``aria-label={`Delete ${item.name}`}``).
+- Overflow menus: `aria-label` + `aria-expanded={open}`.
+- Form inputs with visible labels: native `<label htmlFor>` / `id` pairing (not aria-label).
+- Settings toggles: `role="switch"` + `aria-checked` + `aria-label`.
+- Icon buttons `< 24px`: bumped to `h-6 w-6` (24×24 WCAG AA).
+- Short-ID chips / sidebar favorites header: `min-h-[24px]` wrapper.
+- Sidebar nav links: `min-h-[44px] md:min-h-0` — touch target on mobile, no layout impact on desktop.
+
+**Constraint compliance.**
+- No HIGH/MEDIUM remediation (contrast / landmarks / focus-ring still open).
+- No bundle analysis — deferred to F-14 per `d8-performance-baseline.md §2A`.
+- No component refactors beyond the minimum needed to attach accessible names.
+- No design changes.
+
+**Next.** See `batch-d-close-out.md` for the full Batch D wrap-up and the F-15 follow-up catalog.
+
+---
+
 ## 1A — Colorblind simulation (dynamic — axe sweep stand-in; full simulation still requires human eyes)
 
 **D-8b status:** partially answered by axe-core `color-contrast` rule. Full colorblind simulation (deuteranopia etc.) still requires human-eye review and is not automatable — deferred.

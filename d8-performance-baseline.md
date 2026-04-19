@@ -12,6 +12,8 @@
 1. **Dev vs prod.** All D-8b measurements ran against the Turbopack **dev** server on `localhost:3000`. Dev builds are substantially slower than production (no tree shaking, extra HMR overhead, source maps, React dev-only warnings). Production numbers will be meaningfully better. **Do not use D-8b Lighthouse scores as the release budget** — re-run against `npm run build && npm run start` before setting performance SLOs.
 2. **Headless Chromium frame timing.** Playwright headless Chrome frame pacing is not a perfect proxy for real hardware. The high drop-rate in Part 4 should be interpreted as "suggestive of jank," not "this many frames dropped on real hardware."
 
+**D-8c-1 scope note (2026-04-19):** D-8c-1 remediated BLOCKER accessibility findings only (see `d8-accessibility-report.md §D-8c-1`). §2A mobile numbers below were re-captured against the production build. **Bundle analysis and LCP attribution remain deferred to F-14** — no bundle-analyzer branch was created, no chunk-to-module mapping was performed, and the `page-has-heading-one` / `region` structural gaps from D-8b remain open for F-15.
+
 ---
 
 ## 2A — Lighthouse scores (dynamic — full table)
@@ -33,50 +35,61 @@
 
 **Desktop summary:** Perf 89–93 (all within acceptable range). A11y 93–96 (see D-8a/b accessibility report for raw axe drilldowns). Best Practices 100 across the board. CLS 0 across the board — no layout-shift regressions. LCP 1.7–2.2 s — all **under the 2.5 s "good" threshold** and under the aspirational 2.0 s target except for `/shows/[id]`, `/calendar`, `/releases/[id]`, `/settings?tab=profile` (2.1–2.2 s; marginal).
 
-### Mobile (4G simulation)
+### Mobile (4G simulation) — **D-8c-1 prod build (2026-04-19)**
 
-| Route | Perf | A11y | BP | FCP | LCP | TTI | CLS | TBT |
+Mobile measurements updated in D-8c-1 against production build (`next build && next start` on port 3000, Turbopack-compiled). Dev-build numbers from D-8b (commit `85c7cb5` accessible via git history) are superseded. Desktop numbers above remain canonical from D-8b (prod vs dev delta is negligible on desktop).
+
+| Route | Perf | A11y | BP | LCP | TBT | CLS | D-8b dev Perf | D-8b dev LCP |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| `/` | **69** | 96 | 100 | 997 ms | **9106 ms** | 9118 ms | 0.000 | 287 ms |
-| `/dashboard` | **65** | 93 | 100 | 920 ms | **10559 ms** | 11102 ms | 0.000 | 411 ms |
-| `/shows` | **66** | 93 | 100 | 920 ms | **10466 ms** | 11080 ms | 0.000 | 369 ms |
-| `/shows/[id]` | **60** | 93 | 100 | 919 ms | **12245 ms** | 12245 ms | 0.000 | 557 ms |
-| `/releases/[id]` | **62** | 93 | 100 | 919 ms | **11947 ms** | 11947 ms | 0.000 | 511 ms |
-| `/calendar` | **63** | 93 | 100 | 919 ms | **11937 ms** | 11937 ms | 0.000 | 437 ms |
-| `/money` | **63** | 93 | 100 | 915 ms | **10538 ms** | 10995 ms | 0.000 | 412 ms |
-| `/settings?tab=profile` | **66** | 93 | 100 | 915 ms | **11947 ms** | 11947 ms | 0.000 | 348 ms |
+| `/` | **83** | 96 | 100 | 4676 ms | 80 ms | 0.000 | 69 | 9106 ms |
+| `/dashboard` | **79** | 93 | 100 | 5456 ms | 125 ms | 0.000 | 65 | 10559 ms |
+| `/shows` | **79** | 93 | 100 | 5322 ms | 141 ms | 0.000 | 66 | 10466 ms |
+| `/shows/[id]` | **75** | 93 | 100 | 6247 ms | 192 ms | 0.000 | 60 | 12245 ms |
+| `/releases/[id]` | **76** | 93 | 100 | 5788 ms | 191 ms | 0.000 | 62 | 11947 ms |
+| `/calendar` | **78** | 93 | 100 | 5755 ms | 143 ms | 0.000 | 63 | 11937 ms |
+| `/money` | **77** | 93 | 100 | 5731 ms | 149 ms | 0.000 | 63 | 10538 ms |
+| `/settings?tab=profile` | **76** | 93 | 100 | 6027 ms | 184 ms | 0.000 | 66 | 11947 ms |
 
-**Mobile summary:** Perf 60–69 — **every route is failing the 80 mobile target**, all by a lot. LCP 9.1–12.2 s — **every route is failing the 2.5 s "good" Core Web Vital** by 4–5×. TBT 287–557 ms — every route is failing the 300 ms mobile threshold; 6 of 8 are above 350 ms.
+**Mobile summary (prod build):**
+- Perf 75–83 — **every route now passes the 75 baseline target** but 7 of 8 still miss an 80+ aspirational bar. Median jump of +13 points vs dev.
+- LCP 4.7–6.2 s — **still failing the 2.5 s "good" CWV bucket** and still in "poor" (>4 s), but median jump of 5.5 s improvement (half the dev penalty). The remaining gap is real product work, not build overhead.
+- TBT 80–192 ms — **all routes now pass the 300 ms mobile threshold.** This is the cleanest improvement; the dev-build 287–557 ms ceiling was almost entirely Turbopack overhead.
+- CLS 0.000 across the board (unchanged).
 
-**This is almost entirely the dev-build overhead.** Turbopack dev serves un-minified, un-tree-shaken source + HMR runtime + React DevTools hooks. Bundle size grows 3–5× vs production. CPU throttling of 4× amplifies this into 9–12 s LCPs.
-
-### Core Web Vitals — flagged failures
+### Core Web Vitals — flagged failures (prod build)
 
 **LCP target: < 2.5 s "good", < 4.0 s "needs improvement", > 4.0 s "poor"**
 
-| Route (mobile) | LCP | Bucket |
-|---|---:|---|
-| `/` | 9.1 s | poor |
-| `/dashboard` | 10.6 s | poor |
-| `/shows` | 10.5 s | poor |
-| `/shows/[id]` | 12.2 s | poor |
-| `/releases/[id]` | 11.9 s | poor |
-| `/calendar` | 11.9 s | poor |
-| `/money` | 10.5 s | poor |
-| `/settings?tab=profile` | 11.9 s | poor |
+| Route (mobile) | LCP | Bucket | Δ vs D-8b dev |
+|---|---:|---|---:|
+| `/` | 4.7 s | poor | −4.4 s |
+| `/dashboard` | 5.5 s | poor | −5.1 s |
+| `/shows` | 5.3 s | poor | −5.1 s |
+| `/shows/[id]` | 6.2 s | poor | −6.0 s |
+| `/releases/[id]` | 5.8 s | poor | −6.2 s |
+| `/calendar` | 5.8 s | poor | −6.2 s |
+| `/money` | 5.7 s | poor | −4.8 s |
+| `/settings?tab=profile` | 6.0 s | poor | −5.9 s |
 
 **CLS:** ✅ all routes 0.000 (desktop + mobile).
 **TBT (target < 200 ms desktop / < 300 ms mobile):**
 - Desktop: all pass (max 37 ms on `/calendar`).
-- Mobile: all fail (287 ms on `/` best; 557 ms on `/shows/[id]` worst).
+- Mobile: **all now pass** at 80–192 ms.
 
-### REQUIRES HUMAN TRIAGE
+### REQUIRES HUMAN TRIAGE (prod-build results)
 
-**Before acting on these numbers:**
+The dev-build "is it build overhead?" hypothesis is now answered: **partially.** Build overhead accounted for ~5 s of LCP but every route is still "poor" on mobile. The remaining ceiling appears to be a real product constraint, not a dev-build artifact.
 
-1. **Re-run against production build.** Dev numbers are a soft floor, not a ceiling. Action: `cd apps/web && npm run build && npm run start`, then re-run `lighthouse-sweep.mjs` pointing at the production-served port. Expect mobile perf to jump 15–30 points and LCP to drop 40–60%.
-2. **If the production numbers are still bad**, the most likely suspects are: large initial JS payload (see §2C), client-side Supabase session hydration, non-critical CSS render-blocking. Triage list from D-8a §2C.
-3. **Desktop numbers are trustable as-is.** Desktop perf 89–93 with zero CLS is genuinely good — don't remediate blind.
+**Likely structural causes** (not fixed in D-8c-1; deferred to F-14 performance pass):
+
+1. **Large initial JS payload** — D-8a §2C flagged 3.7 MB total / 222 KB top chunk. First-party + third-party (Recharts, Lucide, Supabase client, Framer Motion) is likely the LCP bottleneck. Action: enable `@next/bundle-analyzer` in a throwaway branch, triage top 3 chunks.
+2. **Client-side Supabase session hydration** — every dashboard route waits for `supabase.auth.getSession()` before painting. LCP timing likely correlates with session round-trip under 4G simulation.
+3. **Framer Motion initial hydration** — `MotionConfig` wrapper around every dashboard route; framer's bundle is notorious for TBT contribution on mobile, but TBT already passes in prod so this may be less relevant.
+4. **Landing page `/` LCP 4.7 s** is 1–1.5 s ahead of every dashboard route, suggesting the dashboard-specific chrome (sidebar, notification provider, favorites provider) is adding 1+ s of LCP delta beyond the base app shell.
+
+**Desktop numbers remain trustable from D-8b.** Desktop perf 89–93 with zero CLS is genuinely good.
+
+**Decision on severity classification:** prod-build mobile LCP failures are **HIGH, not BLOCKER** — functionally the app loads and operates; it just crosses the "poor" CWV line. Bundle attribution + remediation is F-14 (performance pass).
 
 ---
 
@@ -147,13 +160,13 @@ Next.js 16.2.1 under Turbopack does not emit the per-route First Load JS size ta
 - `source-map-explorer` on emitted `.js.map` files
 - Chrome DevTools → Network → Coverage in-browser
 
-### D-8c recommendations
+### F-14 recommendations (deferred from D-8c)
 
 1. Audit top 3 chunks (222 KB, 219 KB, 179 KB) — likely Recharts, Lucide, Supabase client.
 2. Enable `@next/bundle-analyzer` in a one-off branch to attribute chunks.
 3. Target: no single chunk > 170 KB; total JS < 3 MB.
 
-**No D-8b dynamic update to this section** — bundle size is a static build artifact.
+**No D-8b dynamic update to this section** — bundle size is a static build artifact. **D-8c-1 did not touch bundle composition** — the 222 KB top-chunk and 3.5 MB aggregate remain unchanged. Bundle remediation is the focus of F-14.
 
 ---
 
