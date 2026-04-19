@@ -1,10 +1,10 @@
 # ArtistHQ Design System Audit
 
-**Date:** 19 April 2026 (v3.2 — craft integration)
-**Scope:** 62 screenshots (v3 audit basis) + Artist Growth craft analysis (v3.2 addition)
+**Date:** 19 April 2026 (v3.3 — Batch E emergent rules)
+**Scope:** 62 screenshots (v3 audit basis) + Artist Growth craft analysis (v3.2 addition) + Batch E execution emergent rules (v3.3 addition)
 **Reference benchmarks:** Linear, Stripe Dashboard, Attio, Fantastical/Cron, Superhuman, Vercel, Notion, **Artist Growth (primary craft reference, v3.2)**
 
-This document supersedes v2, v3 (both 18 April 2026), and v3.1 (18 April 2026). v3.2 integrates craft observations from Artist Growth analysis, pulls motion + ambient gradient + keyboard-shortcut component forward to Batch D, promotes landing-page rebuild to Batch E, and demotes formal performance discipline + recurring detail-work practice to Batch F. Retroactive craft amendments added to already-shipped Batch D items.
+This document supersedes v2, v3 (both 18 April 2026), v3.1 (18 April 2026), and v3.2 (19 April 2026). v3.3 codifies five rules that emerged during Batch E execution: pill-for-counts (E-4), segmented vs chip threshold (E-1), contrast notation pattern (D-3 correction), architectural debt marker convention (E-9), and currency formatting methodology (E-9). No scope changes; rules only.
 
 This is the canonical reference for all Batch D / E / F execution.
 
@@ -168,30 +168,69 @@ Orphan events (system-generated, imported, artist-less): `--color-chart-neutral`
 
 ## 1.2 Typography scale
 
-Current: everything lives between 12px and 28px with minor weight variation. Flat.
+Shipped via E-2 (Phases 1–2) as Tailwind v4 `@utility` bundles in `apps/web/app/globals.css`. Each display token packs family + weight + size + line-height + tracking so call sites use a single class, not a stack of five.
 
-### Proposed scale
+### 1.2.1 Font stack
 
-| Token | Size | Weight | Font | Role |
-|---|---|---|---|---|
-| `--text-hero` | 48px | 700 | Syne | Landing H1, login wordmark |
-| `--text-display` | 32px | 700 | Syne | Page-level entity titles ("The Lexington", "Nerve Drift", "Settings") |
-| `--text-section` | 20px | 600 | System sans | Card titles ("Show Pipeline", "Quick Stats", "Expense Breakdown") |
-| `--text-body` | 15px | 500 | System sans | Primary data values (venue names, amounts, names) |
-| `--text-meta` | 13px | 400 | System sans | Secondary info (cities, dates in context, sub-lines) |
-| `--text-label` | 11px | 500 | JetBrains Mono | All-caps labels (`DEAL`, `SCHEDULE`, `PRODUCTION`, `CATEGORY`, `VARIANTS`) |
-| `--text-mono-data` | 13px | 400 | JetBrains Mono | Times, dates in tables, IDs, serial numbers |
-| `--text-stat-hero` | 40px | 700 | Syne | Big display numbers ("20" in right panel) |
-| `--text-stat` | 24px | 600 | System sans | Dashboard stat values (€11,700) |
+| Role | Family | Loaded via | Notes |
+|---|---|---|---|
+| Display / body | Neue Montreal | `next/font/local` → `--font-sans` + `font-display` utility | Weight 800 for display; 400/500/600 for body. Subsumes the old "sans + display-sans" split. |
+| Scarce display | Basement Grotesque Black | `next/font/local` → `--font-display` | **Reserved for landing hero + ARTISTHQ wordmark only.** See §1.2.5. |
+| Data / labels | System mono stack | CSS `--font-mono` | `ui-monospace, SFMono-Regular, Menlo, Consolas, monospace`. No webfont — fast, clean, tabular with `font-variant-numeric: tabular-nums`. |
 
-Key moves:
+Syne and JetBrains Mono have been fully retired.
 
-- **Jump from 15px body straight to 24–32px display, skipping 18/20 for values.** This is what makes Linear and Stripe feel crafted.
-- **Labels in JetBrains Mono at 11px with letter-spacing 0.05em.** You already do this selectively — make it consistent. Form labels on `merch-new.png`, `contacts-new.png`, `settings-preferences.png`, `settings-links.png` are already close — lock the treatment.
-- **Stat values in bespoke weight (Syne or semibold system) at 24–40px.** Currently Revenue €11,700 is 28px, Net +€4,765 is 28px, but the hero "NEXT SHOW 03 May" is only 22–24px. Hero stat gets the biggest treatment.
-- **Syne is the display font. Don't use it below 20px.** It's a display face, not a UI face. The Syne "ARTISTHQ" wordmark on login at ~24px is on the edge — acceptable for brand, but don't extend Syne into UI.
+### 1.2.2 Display scale
+
+All `text-display-*` utilities resolve to Neue Montreal 800 with tight line-height and tracking tuned per size. Use `[text-wrap:balance]` on wrappable h1s.
+
+| Token | Size | Role |
+|---|---|---|
+| `text-display-hero-lg` | 72px | Landing hero (Basement override allowed here — see §1.2.5) |
+| `text-display-hero` | 56px | Auth / marketing heroes |
+| `text-display-xl` | 44px | Page H1 for entity titles ("The Lexington", "Nerve Drift") |
+| `text-display-lg` | 36px | Dashboard / section H1 ("Settings", "Money", "Shows") |
+| `text-display-md` | 28px | Sub-page heads, drawer titles, onboarding step headings |
+| `text-display-sm` | 20px | Card titles, section heads inside cards |
+
+### 1.2.3 Section labels & mono data
+
+| Token | Size | Tracking | Role |
+|---|---|---|---|
+| `text-mono-sm` | 11px | 0.05em | All uppercase section labels ("QUICK STATS", "ROLLOUT TIMELINE", "NOTES"). Pair with `uppercase text-fg-muted` or `text-fg-faint`. |
+| `font-mono` body | inherits | inherits | Times, dates in tables, IDs, serial numbers. Retain `font-variant-numeric: tabular-nums` for numeric columns. |
+
+The 10px/12px variants and 0.08em/0.1em/0.12em/0.14em/0.16em letter-spacings that accumulated pre-E-2 are all consolidated to `text-mono-sm`.
+
+### 1.2.4 Editorial craft primitives *(new in E-2 Phase 2)*
+
+Two composable primitives ship in `apps/web/app/_components/` for restraint-first editorial moments:
+
+- **`GhostedHeadline`** — [apps/web/app/_components/GhostedHeadline.tsx](apps/web/app/_components/GhostedHeadline.tsx). Renders a very-low-opacity (default 0.04) ghost word behind arbitrary children inside an `isolate` stacking context, `aria-hidden` to assistive tech and clipped by the container. Use on empty states and hero panels where the page wants identity without noise. Sizes: `md` (96px), `lg` (144px), `xl` (200px). Applied: shows-page empty state with `ghost="SHOWS" size="xl"`.
+- **`TwoTierHeading`** — [apps/web/app/_components/TwoTierHeading.tsx](apps/web/app/_components/TwoTierHeading.tsx). Two-part heading (`firstPart` solid `text-fg`, `secondPart` gradient-clipped `fg → fg-muted → fg-faint` via `bg-clip-text`) sharing a single display-scale size. Use for subjective brand moments ("Your plan. Your pace.") — not for entity titles. Applied: settings subscription tab title via `SectionCard`'s optional `titleSlot` override prop (minimal-blast-radius integration).
+
+Required-field markers throughout the form layer migrated to `<span className="text-danger" aria-hidden="true">*</span>` — decorative in red, inline after the label, paired with `aria-required` on the input.
+
+Italic discipline: only for substantive emphasis (quoted notes, placeholder EPK copy). When color already differentiates a row (e.g., non-show tour entries), italic is removed.
+
+### 1.2.5 Basement Grotesque scarcity rule
+
+Basement Grotesque Black is **identity type**, not UI type. Legitimate call sites:
+
+1. Landing page hero `<h1>`.
+2. Any `ARTISTHQ` wordmark (login, onboarding, marketing header, footer, terms, privacy).
+
+Everywhere else — including every dashboard H1, drawer title, card head, onboarding step — uses Neue Montreal 800 via the `text-display-*` tokens. Adding Basement to anything new requires explicit scope approval; it diffuses the brand if it becomes a default.
 
 **§0.1 reminder:** hierarchy must survive type scale being stripped. If the only thing distinguishing a section title from body text is size, the structure fails when a screen-reader reads it, when reflow shrinks everything, or when a user overrides base font size. Pair size with weight shift, mono-vs-sans shift, or semantic HTML (`<h2>` vs `<p>`).
+
+### 1.2.6 Currency formatting methodology *(new in v3.3, from E-9)*
+
+All monetary values route through a single formatter that accepts `(amount, currency, locale?)` and returns a fully formatted string — no bare numbers concatenated with symbols, no per-call Intl instances, no locale-dependent thousands-separator drift between rows. The hero stat and the table cell must be produced by the same function, so a mixed-currency page (e.g., USD hero + EUR line items) either displays both currencies faithfully or converts them up-stream before rendering — never silently.
+
+**Rule:** if a component receives `amount` without `currency`, it is a presentation contract violation — fail loud in dev, fall back to `defaultCurrency` in prod, and mark the call site with the architectural debt marker (§1.5.1). Do not introduce inline `${amount}` or `\`€\${amount}\`` template literals anywhere in the product; the formatter is the only surface that emits a currency glyph.
+
+**Why this is in §1.2 (Typography):** currency glyphs are type. They participate in numeric tabular-nums alignment, line-height rhythm, and the 13px `text-mono-data` monospace contract. Treating currency as a "business logic" concern is how `money-income.png` shipped a USD hero above EUR rows.
 
 ## 1.3 Spacing rhythm
 
@@ -274,6 +313,22 @@ Currently the "Export" button in top-right on Money pages looks nearly identical
 
 What this consolidates: `shows-new.png` and `releases-new.png` (per v2) have "sidebar leaking" issues from the full-page form layout. `merch-new.png` and `contacts-new.png` fix this by keeping the card wrapper self-contained. Use the latter as the reference. Fold into F-10 as a component-ization pass.
 
+### 1.4.4 Pill-for-counts *(new in v3.3, from E-4)*
+
+Small semantic counts (unread, active, pending, overdue, at-limit) render as ~20px circular pills tinted by their status token — not as plain mono digits inline with a label. The pill's role is to make the count scannable at glance and to carry the semantic via background color, not via the digit itself. `<StatPill variant="warning">3</StatPill>` is correct; `(3)` or bold `3` in text color is not.
+
+**Rule:** if a count can be zero, the pill is suppressed entirely — never rendered as a greyed-out "0". If a count exceeds two digits, truncate as `99+`; never let the pill grow horizontally past its circular shape. Counts ≥ four digits belong in a stat card, not a pill.
+
+**Where it applies:** notification bell badge, sidebar nav item counts, tab labels with pending counts (Tasks, Activity), UpgradeBanner "X of Y used" (pill renders the remaining when scarce). Does not apply to hero stat cards — those use `--text-stat-hero` mono typography, not pills.
+
+### 1.4.5 Segmented vs chip threshold *(new in v3.3, from E-1)*
+
+Use a segmented control (contiguous pill row with one active option) when the option set is ≤ 5, mutually exclusive, and stable across sessions — e.g., period selectors (Today / This Week / This Month / This Quarter / This Year), view modes (List / Calendar / Map). Use chip filters (discrete tappable chips with multi-select or single-select) when the option set is > 5, user-extensible, or semantically plural (tags, categories, crew roles, show statuses).
+
+**Rule:** never mix the two on the same bar. A segmented control implies "pick exactly one from a small, fixed set"; chips imply "narrow down from a variable set." If you find yourself wanting a segmented control with six options or a chip row with three, re-examine the information architecture — the threshold is signal, not arbitrary.
+
+**Where it applies:** Money page period selector (segmented, 5 options), Shows filter bar (chips, per-status plus custom date ranges), Calendar view switcher (segmented, 4 options), Contacts role filter (chips, variable role families).
+
 ## 1.5 Information hierarchy
 
 Three levels, always:
@@ -291,6 +346,16 @@ On `show-detail-active-overview.png` this works: "The Lexington" 32px white, "Lo
 3. **Summary tab** — explicit tab that holds the right-panel equivalent. Use when right-panel content is extensive enough to warrant its own surface (gear-detail's 4 stacked cards).
 
 `release-detail-overview-mobile.png` currently drops Rollout Timeline, Contact, and Quick Stats entirely — this is the most severe mobile-parity violation in the product because Rollout Timeline is the page's primary navigational spine.
+
+### 1.5.1 Architectural debt marker convention *(new in v3.3, from E-9)*
+
+When executing a design fix exposes a non-design architectural problem (schema drift, missing presentation contract, cross-tier data shape mismatch, absent denormalization), the fix **ships the design correction and marks the architectural issue in-place** rather than deferring both or expanding scope to fix the architecture mid-design-pass.
+
+**Marker shape:** `// ARCH-DEBT(<ticket-or-note>): <one-line description of what the architectural fix requires>` placed at the point of impedance mismatch in source, paired with a line in the design-system `§2.3 Gaps` table that names the debt and the surface where it surfaced.
+
+**Rule:** markers are tracked but not batched arbitrarily. When the same `ARCH-DEBT` tag appears at ≥ 3 call sites, promote it to a Batch F work item. When it appears at 1–2 call sites, leave it — premature abstraction is worse than duplicated marker comments.
+
+**Why this exists:** design passes expose architecture flaws faster than architecture passes expose design flaws, because design forces you to render the data. E-9 (currency formatting unification) is the canonical example: the design fix (one formatter) was shippable in hours; the architectural fix (ensuring every `amount` row carries `currency` from schema to component) is a multi-week schema migration. Marker convention let E-9 ship the former without blocking on the latter.
 
 ## 1.6 Generated document micro-interface *(new in v3)*
 
@@ -436,6 +501,8 @@ Each card represents a document that the system can generate from structured dat
 All motion tokens must respect `prefers-reduced-motion: reduce` globally.
 
 **Contrast discipline (v3.1):** Same notation discipline as `--color-status-day-of` applies to `--color-status-hold`, `--color-status-mastering`, `--color-status-warning`, and the `--color-role-*` / `--color-crew-*` family. D-8 measures and records actual ratios for each. Tokens that fail get revised before D-8 closes.
+
+**Contrast notation pattern (v3.3, from D-3 correction):** every non-neutral token that can appear as background OR foreground carries a two-line comment above its declaration — line 1 records contrast vs `--color-bg` (the darkest surface it will sit on), line 2 records contrast when the token is used as a chip background with `#fff` foreground (the lightest foreground it will carry). Both lines cite the WCAG threshold passed (AA normal / AA large / AAA), and the line closes with `Verified during <batch-item>` so the measurement is traceable. The `--color-status-day-of` block above is the canonical shape — copy its two-line structure verbatim when adding new palette tokens. Comments without measurements are not acceptable; unmeasured tokens do not ship.
 
 ## 2.3 Gaps
 
@@ -2985,6 +3052,22 @@ v2 estimated Batch D at ~4 focused days, Batch E at ~6, Batch F at ~2–3 weeks.
 
 Each revision through v2 → v3 → v3.1 → v3.2 is a correction, not a scope explosion. The underlying diagnosis from v2 held up throughout. v3.2 adds an external benchmark (Artist Growth) that sharpens the craft criteria without changing the diagnosis.
 
+## v3.3 — Batch E emergent rules (19 April 2026)
+
+v3.3 adds no new batch items and changes no existing scope. It codifies five rules that emerged during Batch E execution — moments where an item's implementation surfaced a reusable pattern that the system had been leaning on without naming. Each rule is now a one-paragraph reference with a concrete "where it applies" list, so future surfaces can follow the pattern without re-deriving it.
+
+**Rules added in v3.3:**
+
+- **§1.2.6 Currency formatting methodology** *(from E-9)* — single formatter, no inline template literals, mixed-currency pages convert up-stream or display faithfully. Currency glyphs are type, not business logic.
+- **§1.4.4 Pill-for-counts** *(from E-4)* — small semantic counts render as ~20px circular status-tinted pills, not bold digits inline. Zero suppresses, three-digit overflows truncate to `99+`.
+- **§1.4.5 Segmented vs chip threshold** *(from E-1)* — segmented control ≤ 5 fixed mutually-exclusive options, chip filters > 5 or user-extensible. Never mix on same bar.
+- **§1.5.1 Architectural debt marker convention** *(from E-9)* — ship the design correction, mark the architectural issue in-place with `ARCH-DEBT(...)` + gap-table entry. Promote to Batch F only at ≥ 3 call sites.
+- **§2.2 Contrast notation pattern** *(from D-3 correction)* — every non-neutral token carries a two-line contrast comment (vs bg, and as chip bg with white fg) with WCAG threshold + verifying batch item. Unmeasured tokens do not ship.
+
+**Principle held:** each rule was already implicit in the product before v3.3 — the document update is recognition, not invention. The v3.3 risk is the opposite of the v3.2 risk: v3.2 was "am I adding too much new scope?", v3.3 is "am I naming things that don't need names?" The threshold applied: a pattern gets a rule only when ≥ 3 existing surfaces already use it (or would use it on the next surface). All five meet that bar.
+
+**Why ship as docs-only:** rule codification has near-zero execution risk (no code changes), compounds immediately (future Batch E/F work references named rules instead of re-discovering them), and is cheapest to write while the execution memory is fresh. Waiting until Batch E closes would let the rationale fade.
+
 ---
 
 # Principle precedence (when rules conflict)
@@ -3016,4 +3099,4 @@ This hierarchy gives Claude Code a deterministic resolution path during executio
 
 ---
 
-*This document (v3.2 craft integration) is the canonical reference for the ArtistHQ design audit. It supersedes v2 (18 April 2026), v3 (18 April 2026), and v3.1 (18 April 2026). All v3.1 amendments and v3.2 craft-integration changes are integrated inline throughout — there are no separate amendments sections. Next update (v4) will be triggered by (a) Batch D completion with D-8 accessibility + performance verification closed, (b) first external user feedback after closed beta, or (c) addition of Pro-tier pages not yet in scope.*
+*This document (v3.3 Batch E emergent rules) is the canonical reference for the ArtistHQ design audit. It supersedes v2 (18 April 2026), v3 (18 April 2026), v3.1 (18 April 2026), and v3.2 (19 April 2026). All v3.1 amendments, v3.2 craft-integration changes, and v3.3 emergent-rule codifications are integrated inline throughout — there are no separate amendments sections. Next update (v4) will be triggered by (a) Batch D completion with D-8 accessibility + performance verification closed, (b) first external user feedback after closed beta, or (c) addition of Pro-tier pages not yet in scope.*
